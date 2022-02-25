@@ -16,8 +16,8 @@ describe('Yett', () => {
     it('should attach to the window object', () => {
         assert(!!window.yett, 'window.yett is not defined')
         assert(
-            !!window.YETT_BLACKLIST || !!window.YETT_WHITELIST,
-            'window.YETT_BLACKLIST or window.YETT_WHITELIST is not defined'
+            !!window.PandectesRules.blacklist || !!window.PandectesRules.whitelist,
+            'window.PandectesRules.blacklist or window.PandectesRules.whitelist is not defined'
         )
     })
     it('should not block unwanted scripts', () => {

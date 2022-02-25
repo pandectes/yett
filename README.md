@@ -51,11 +51,11 @@ And on a side note, it is technically quite amazing to know that **[a few lines 
 
     <!-- 1) Add a blacklist -->
     <script>
-      window.YETT_BLACKLIST = [
+      window.PandectesRules.blacklist = [
         /my-blacklisted-domain/,
       ]
       // Or a whitelist
-      window.YETT_WHITELIST = [
+      window.PandectesRules.whitelist = [
         /my-whitelisted-domain/,
       ]
     </script>
@@ -125,11 +125,11 @@ npm i yett
 ```
 
 ```js
-window.YETT_BLACKLIST = [
+window.PandectesRules.blacklist = [
     // ... //
 ]
 // OR
-window.YETT_WHITELIST = [
+window.PandectesRules.whitelist = [
     // ... //
 ]
 // Side effects here! Do not import more than once!
