@@ -1,16 +1,33 @@
 import "./observer";
 import "./monkey";
 import { unblock } from "./unblock";
+import { backupScripts } from './variables';
 window.PandectesRules = window.PandectesRules || {};
+
+window.PandectesRules.manualBlacklist = {
+  1: [],
+  2: [],
+  4: []
+};
+
 window.PandectesRules.unblock = unblock;
-window.PandectesRules.toJson = function (value) {
+window.PandectesRules.toJson = function(value) {
   try {
     return JSON.parse(value);
   } catch (e) {
     return false;
   }
 };
-window.PandectesRules.getCookie = function (name = "_pandectes_gdpr") {
+
+window.PandectesRules.getBackupScripts = function() {
+  const output = [];
+  for (let i = 0; i < backupScripts.blacklisted.length; i += 1) {
+    output.push(backupScripts.blacklisted[i][0].getAttribute('src'));
+  }
+  return output;
+}
+
+window.PandectesRules.getCookie = function(name = "_pandectes_gdpr") {
   const value = "; " + document.cookie;
   const parts = value.split("; " + name + "=");
   let cookieValue;
@@ -43,7 +60,7 @@ window.PandectesRules.gcm = {
   },
 };
 
-window.PandectesRules.initializeGcm = function (gcmConfig, defaultBlocked = 0) {
+window.PandectesRules.initializeGcm = function(gcmConfig, defaultBlocked = 0) {
   const cookie = this.getCookie();
   let blocked = defaultBlocked;
   if (cookie && cookie.preferences !== null) {
