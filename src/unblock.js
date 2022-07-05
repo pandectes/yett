@@ -15,20 +15,25 @@ import {
 const URL_REPLACER_REGEXP = new RegExp('[|\\{}()[\\]^$+*?.]', 'g')
 
 // Unblocks all (or a selection of) blacklisted scripts.
-export const unblock = function(...scriptUrlsOrRegexes) {
+export const unblock = function(scriptUrlsOrRegexes) {
+  // console.log('0: scriptUrlsOrRegexes');
+  // console.log(scriptUrlsOrRegexes);
+  // console.log('1: Patterns blacklist');
+  // console.log(patterns.blacklist);
   if (scriptUrlsOrRegexes.length < 1) {
     patterns.blacklist = []
     patterns.whitelist = []
   } else {
     if (patterns.blacklist) {
-      patterns.blacklist = patterns.blacklist.filter(pattern => (
-        scriptUrlsOrRegexes.every(urlOrRegexp => {
-          if (typeof urlOrRegexp === 'string')
+      patterns.blacklist = patterns.blacklist.filter(pattern => {
+        return scriptUrlsOrRegexes.every(urlOrRegexp => {
+          if (typeof urlOrRegexp === 'string') {
             return !pattern.test(urlOrRegexp)
-          else if (urlOrRegexp instanceof RegExp)
+          } else if (urlOrRegexp instanceof RegExp) {
             return pattern.toString() !== urlOrRegexp.toString()
+          }
         })
-      ))
+      })
     }
     if (patterns.whitelist) {
       patterns.whitelist = [
@@ -53,6 +58,9 @@ export const unblock = function(...scriptUrlsOrRegexes) {
     }
   }
 
+  // console.log('2: Patterns blacklist');
+  // console.log(patterns.blacklist);
+
   // Parse existing script tags with a marked type
   const tags = document.querySelectorAll(`script[type="${TYPE_ATTRIBUTE}"]`)
   for (let i = 0; i < tags.length; i++) {
@@ -67,6 +75,7 @@ export const unblock = function(...scriptUrlsOrRegexes) {
   let indexOffset = 0;
   [...backupScripts.blacklisted].forEach(([script, type], index) => {
     if (willBeUnblocked(script)) {
+      // console.log('PandectesRules unblock: ' + script.src);
       const scriptNode = document.createElement('script')
       for (let i = 0; i < script.attributes.length; i++) {
         let attribute = script.attributes[i]
