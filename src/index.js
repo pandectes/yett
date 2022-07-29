@@ -63,7 +63,7 @@ window.PandectesRules.gcm = {
 window.PandectesRules.initializeGcm = function(gcmConfig, defaultBlocked = 0) {
   const cookie = this.getCookie();
   let blocked = defaultBlocked;
-  if (cookie && cookie.preferences !== null) {
+  if (cookie && cookie.preferences !== null && cookie.preferences !== undefined) {
     blocked = cookie.preferences;
   }
 
