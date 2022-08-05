@@ -1,4 +1,4 @@
-import { backupScripts, TYPE_ATTRIBUTE } from './variables'
+import { backupScripts, TYPE_ATTRIBUTE, SCANNER_AGENT } from './variables'
 import { isOnBlacklist } from './checks'
 
 function fixRegExp(rule) {
@@ -7,7 +7,6 @@ function fixRegExp(rule) {
 
 // Setup a mutation observer to track DOM insertion
 export const observer = new MutationObserver(mutations => {
-  // console.log('Observer running for ' + mutations.length + ' mutations');
   for (let i = 0; i < mutations.length; i++) {
     const { addedNodes } = mutations[i];
     for (let i = 0; i < addedNodes.length; i++) {
@@ -71,8 +70,37 @@ export const observer = new MutationObserver(mutations => {
   }
 })
 
-// Starts the monitoring
-observer.observe(document.documentElement, {
-  childList: true,
-  subtree: true
-})
+if (navigator.userAgent !== SCANNER_AGENT) {
+  // Starts the monitoring
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  })
+} else {
+  const intervalId = setInterval(() => {
+    if (window.Shopify) {
+      clearInterval(intervalId);
+      window.Shopify.loadFeatures(
+        [
+          {
+            name: 'consent-tracking-api',
+            version: '0.1',
+          },
+        ],
+        (error) => {
+          if (error) {
+            return;
+          }
+          if (window.Shopify.trackingConsent) {
+            window.Shopify.trackingConsent.setTrackingConsent(true, function(response) {
+              if (response && response.error) {
+                return;
+              }
+            });
+          }
+        },
+      );
+    }
+  }, 20);
+}
+

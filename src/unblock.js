@@ -16,10 +16,6 @@ const URL_REPLACER_REGEXP = new RegExp('[|\\{}()[\\]^$+*?.]', 'g')
 
 // Unblocks all (or a selection of) blacklisted scripts.
 export const unblock = function(scriptUrlsOrRegexes) {
-  // console.log('0: scriptUrlsOrRegexes');
-  // console.log(scriptUrlsOrRegexes);
-  // console.log('1: Patterns blacklist');
-  // console.log(patterns.blacklist);
   if (scriptUrlsOrRegexes.length < 1) {
     patterns.blacklist = []
     patterns.whitelist = []
