@@ -1,5 +1,5 @@
-import { backupScripts, TYPE_ATTRIBUTE, SCANNER_AGENT } from './variables'
-import { isOnBlacklist } from './checks'
+import { patterns, backupScripts, backupIFrames, TYPE_ATTRIBUTE, SCANNER_AGENT } from './variables'
+import { isOnBlacklist, isOnBlacklistIFrame } from './checks'
 
 function fixRegExp(rule) {
   return new RegExp(rule.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&'));
@@ -12,6 +12,18 @@ export const observer = new MutationObserver(mutations => {
     for (let i = 0; i < addedNodes.length; i++) {
       const node = addedNodes[i]
       // For each added script tag
+      if (node.nodeType === 1 && node.tagName === 'IFRAME') {
+        const src = node.src;
+        console.log(src);
+        console.log(patterns.iframesBlacklist);
+        // const type = node.type;
+        if (isOnBlacklistIFrame(src)) {
+          backupIFrames.blacklisted.push(node);
+          node.removeAttribute('src');
+          node.removeAttribute('data-src');
+          node.setAttribute('data-pandectes-src', src);
+        }
+      }
       if (node.nodeType === 1 && node.tagName === 'SCRIPT') {
         const src = node.src
         const type = node.type

@@ -1,11 +1,12 @@
 import {
   patterns,
   backupScripts,
+  backupIFrames,
   TYPE_ATTRIBUTE
 } from './variables'
 
 import {
-  willBeUnblocked
+  willBeUnblocked, willBeUnblockedIFrame
 } from './checks'
 
 import {
@@ -17,8 +18,10 @@ const URL_REPLACER_REGEXP = new RegExp('[|\\{}()[\\]^$+*?.]', 'g')
 // Unblocks all (or a selection of) blacklisted scripts.
 export const unblock = function(scriptUrlsOrRegexes) {
   if (scriptUrlsOrRegexes.length < 1) {
-    patterns.blacklist = []
-    patterns.whitelist = []
+    patterns.blacklist = [];
+    patterns.whitelist = [];
+    patterns.iframesBlacklist = [];
+    patterns.iframesWhitelist = [];
   } else {
     if (patterns.blacklist) {
       patterns.blacklist = patterns.blacklist.filter(pattern => {
@@ -44,6 +47,38 @@ export const unblock = function(scriptUrlsOrRegexes) {
               }
             } else if (urlOrRegexp instanceof RegExp) {
               if (patterns.whitelist.every(p => p.toString() !== urlOrRegexp.toString())) {
+                return urlOrRegexp
+              }
+            }
+            return null
+          })
+          .filter(Boolean)
+      ]
+    }
+    if (patterns.iframesBlacklist) {
+      patterns.iframesBlacklist = patterns.iframesBlacklist.filter(pattern => {
+        return scriptUrlsOrRegexes.every(urlOrRegexp => {
+          if (typeof urlOrRegexp === 'string') {
+            return !pattern.test(urlOrRegexp)
+          } else if (urlOrRegexp instanceof RegExp) {
+            return pattern.toString() !== urlOrRegexp.toString()
+          }
+        })
+      })
+    }
+    if (patterns.iframesWhitelist) {
+      patterns.iframesWhitelist = [
+        ...patterns.iframesWhitelist,
+        ...scriptUrlsOrRegexes
+          .map(urlOrRegexp => {
+            if (typeof urlOrRegexp === 'string') {
+              const escapedUrl = urlOrRegexp.replace(URL_REPLACER_REGEXP, '\\$&')
+              const permissiveRegexp = '.*' + escapedUrl + '.*'
+              if (patterns.iframesWhitelist.every(p => p.toString() !== permissiveRegexp.toString())) {
+                return new RegExp(permissiveRegexp)
+              }
+            } else if (urlOrRegexp instanceof RegExp) {
+              if (patterns.iframesWhitelist.every(p => p.toString() !== urlOrRegexp.toString())) {
                 return urlOrRegexp
               }
             }
@@ -86,6 +121,19 @@ export const unblock = function(scriptUrlsOrRegexes) {
       indexOffset++
     }
   })
+
+  indexOffset = 0;
+  [...backupIFrames.blacklisted].forEach((node, index) => {
+    const src = node.dataset.pandectesSrc;
+    if (willBeUnblockedIFrame(src)) {
+      const iframeNode = document.querySelector(`iframe[data-pandectes-src^="${src}"]`);
+      iframeNode.removeAttribute('data-pandectes-src');
+      iframeNode.src = src;
+      backupIFrames.blacklisted.splice(index - indexOffset, 1);
+      indexOffset++;
+    }
+  })
+
 
   // Disconnect the observer if the blacklist is empty for performance reasons
   if (patterns.blacklist && patterns.blacklist.length < 1) {
