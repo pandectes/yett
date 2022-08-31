@@ -1,0 +1,1 @@
+window.PandectesRules = window.PandectesRules || {};

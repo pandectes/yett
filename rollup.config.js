@@ -5,15 +5,15 @@ export default {
   input: "src/index.js",
   output: {
     file: "../gdpr/src/backend/shared/yett.min.js",
-    format: "umd",
+    // format: "umd",
     name: "yett",
     sourcemap: false,
   },
   plugins: [
-    babel({
-      exclude: "node_modules/**",
-      babelHelpers: "bundled",
-    }),
-    terser(),
+    // babel({
+    //   exclude: "node_modules/**",
+    //   babelHelpers: "bundled",
+    // }),
+    // terser(),
   ],
 };
