@@ -41,6 +41,8 @@ export const patterns = {
   whitelist: window.PandectesRules.whitelist,
 };
 
+window.PandectesRules.blacklist = patterns.blacklist;
+
 // Backup list containing the original blacklisted script elements
 export const backupScripts = {
   blacklisted: [],
