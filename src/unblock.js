@@ -2,16 +2,14 @@ import {
   patterns,
   backupScripts,
   backupIFrames,
-  TYPE_ATTRIBUTE
+  TYPE_ATTRIBUTE,
+  IS_SCANNER
 } from './variables'
 
 import {
   willBeUnblocked, willBeUnblockedIFrame
 } from './checks'
-
-import {
-  observer
-} from './observer'
+import observer from './observer'
 
 const URL_REPLACER_REGEXP = new RegExp('[|\\{}()[\\]^$+*?.]', 'g')
 
@@ -89,9 +87,6 @@ export const unblock = function(scriptUrlsOrRegexes) {
     }
   }
 
-  // console.log('2: Patterns blacklist');
-  // console.log(patterns.blacklist);
-
   // Parse existing script tags with a marked type
   const tags = document.querySelectorAll(`script[type="${TYPE_ATTRIBUTE}"]`)
   for (let i = 0; i < tags.length; i++) {
@@ -106,7 +101,6 @@ export const unblock = function(scriptUrlsOrRegexes) {
   let indexOffset = 0;
   [...backupScripts.blacklisted].forEach(([script, type], index) => {
     if (willBeUnblocked(script)) {
-      // console.log('PandectesRules unblock: ' + script.src);
       const scriptNode = document.createElement('script')
       for (let i = 0; i < script.attributes.length; i++) {
         let attribute = script.attributes[i]
@@ -134,9 +128,11 @@ export const unblock = function(scriptUrlsOrRegexes) {
     }
   })
 
-
-  // Disconnect the observer if the blacklist is empty for performance reasons
-  if (patterns.blacklist && patterns.blacklist.length < 1) {
-    observer.disconnect()
+  if (IS_SCANNER === false) {
+    // Disconnect the observer if the blacklist is empty for performance reasons
+    if (patterns.blacklist && patterns.blacklist.length < 1) {
+      console.log('PandectesAutoBlocker: disconnecting observer');
+      observer.disconnect()
+    }
   }
 }

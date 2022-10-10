@@ -1,4 +1,4 @@
-import { patterns, backupScripts, backupIFrames, TYPE_ATTRIBUTE, SCANNER_AGENT } from './variables'
+import { backupScripts, backupIFrames, TYPE_ATTRIBUTE } from './variables'
 import { isOnBlacklist, isOnBlacklistIFrame } from './checks'
 
 function fixRegExp(rule) {
@@ -6,7 +6,7 @@ function fixRegExp(rule) {
 }
 
 // Setup a mutation observer to track DOM insertion
-export const observer = new MutationObserver(mutations => {
+export default new MutationObserver(mutations => {
   for (let i = 0; i < mutations.length; i++) {
     const { addedNodes } = mutations[i];
     for (let i = 0; i < addedNodes.length; i++) {
@@ -14,8 +14,6 @@ export const observer = new MutationObserver(mutations => {
       // For each added script tag
       if (node.nodeType === 1 && node.tagName === 'IFRAME') {
         const src = node.src;
-        console.log(src);
-        console.log(patterns.iframesBlacklist);
         // const type = node.type;
         if (isOnBlacklistIFrame(src)) {
           backupIFrames.blacklisted.push(node);
@@ -33,6 +31,7 @@ export const observer = new MutationObserver(mutations => {
         if (isOnBlacklist(src, type)) {
           // We backup the node
           backupScripts.blacklisted.push([node, node.type])
+          console.log(src);
 
           // Blocks inline script execution in Safari & Chrome
           node.type = TYPE_ATTRIBUTE
@@ -81,38 +80,3 @@ export const observer = new MutationObserver(mutations => {
     }
   }
 })
-
-if (navigator.userAgent !== SCANNER_AGENT) {
-  // Starts the monitoring
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true
-  })
-} else {
-  const intervalId = setInterval(() => {
-    if (window.Shopify) {
-      clearInterval(intervalId);
-      window.Shopify.loadFeatures(
-        [
-          {
-            name: 'consent-tracking-api',
-            version: '0.1',
-          },
-        ],
-        (error) => {
-          if (error) {
-            return;
-          }
-          if (window.Shopify.trackingConsent) {
-            window.Shopify.trackingConsent.setTrackingConsent(true, function(response) {
-              if (response && response.error) {
-                return;
-              }
-            });
-          }
-        },
-      );
-    }
-  }, 20);
-}
-

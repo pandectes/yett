@@ -1,8 +1,46 @@
-import "./observer";
+import { backupScripts, IS_SCANNER, clog } from './variables';
+import observer from "./observer";
+import monkey from './monkey';
 import "./monkey";
 import { unblock } from "./unblock";
-import { backupScripts } from './variables';
+
+clog(`userAgent -> ${window.navigator.userAgent}`);
+
+const intervalId = setInterval(() => {
+  if (window.Shopify) {
+    clearInterval(intervalId);
+    window.Shopify.loadFeatures([{
+      name: 'consent-tracking-api',
+      version: '0.1'
+    }], error => {
+      if (error) {
+        clog('consent-tracking-api -> failed to load', 'warning');
+        return;
+      }
+      clog('consent-tracking-api -> loaded successfully')
+      if (IS_SCANNER) {
+        window.Shopify.customerPrivacy.setTrackingConsent(true, (response) => {
+          if (response && response.error) {
+            clog('consent-tracking-api -> failed to allow tracking', 'error')
+          }
+          clog('consent-tracking-api -> tracking allowed');
+        })
+      }
+    });
+  }
+}, 10);
+
 window.PandectesRules = window.PandectesRules || {};
+
+if (IS_SCANNER === false) {
+  clog('patching createElement');
+  document.createElement = monkey;
+  clog('connecting observer');
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true
+  });
+}
 
 window.PandectesRules.manualBlacklist = {
   1: [],
