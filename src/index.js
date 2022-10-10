@@ -1,7 +1,7 @@
+import { backupScripts } from './variables';
 import "./observer";
 import "./monkey";
 import { unblock } from "./unblock";
-import { backupScripts } from './variables';
 window.PandectesRules = window.PandectesRules || {};
 
 window.PandectesRules.manualBlacklist = {
@@ -11,13 +11,6 @@ window.PandectesRules.manualBlacklist = {
 };
 
 window.PandectesRules.unblock = unblock;
-window.PandectesRules.toJson = function(value) {
-  try {
-    return JSON.parse(value);
-  } catch (e) {
-    return false;
-  }
-};
 
 window.PandectesRules.getBackupScripts = function() {
   const output = [];
@@ -26,25 +19,6 @@ window.PandectesRules.getBackupScripts = function() {
   }
   return output;
 }
-
-window.PandectesRules.getCookie = function(name = "_pandectes_gdpr") {
-  const value = "; " + document.cookie;
-  const parts = value.split("; " + name + "=");
-  let cookieValue;
-  if (parts.length < 2) {
-    cookieValue = {};
-  } else {
-    const popped = parts.pop();
-    const splitted = popped.split(";");
-    cookieValue = window.atob(splitted.shift());
-  }
-  const cookieValueParsed = this.toJson(cookieValue);
-  if (cookieValueParsed !== false) {
-    return cookieValueParsed;
-  } else {
-    return cookieValue;
-  }
-};
 
 window.PandectesRules.gcm = {
   hasInitialized: false,
