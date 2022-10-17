@@ -32,9 +32,13 @@ const cookieValue = window.PandectesRules.getCookie();
 
 const preferences = cookieValue ? (cookieValue.preferences !== null && cookieValue.preferences !== undefined ? cookieValue.preferences : 7) : 7;
 
-const c1 = (preferences & 1) === 0 ? [] : window.PandectesRules.c1 || [];
-const c2 = (preferences & 2) === 0 ? [] : window.PandectesRules.c2 || [];
-const c4 = (preferences & 4) === 0 ? [] : window.PandectesRules.c4 || [];
+const p1 = (preferences & 1) === 0;
+const p2 = (preferences & 2) === 0;
+const p4 = (preferences & 4) === 0;
+
+const c1 = p1 ? [] : window.PandectesRules.c1 || [];
+const c2 = p2 ? [] : window.PandectesRules.c2 || [];
+const c4 = p4 ? [] : window.PandectesRules.c4 || [];
 
 export const patterns = {
   blacklist: [...c1, ...c2, ...c4],
@@ -42,6 +46,29 @@ export const patterns = {
 };
 
 window.PandectesRules.blacklist = patterns.blacklist;
+
+// this code runs only on the checkouts page
+if (/\/checkouts\//.test(window.location.pathname)) {
+  let status;
+  if (preferences === 7) {
+    status = 'deny';
+  } else if (preferences === 0) {
+    status = 'allow';
+  } else {
+    status = 'mixed';
+  }
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: 'Pandectes_Consent_Update',
+    pandectes_status: status,
+    pandectes_categories: {
+      C000: 'allow',
+      C001: p1 ? 'allow' : 'deny',
+      C002: p2 ? 'allow' : 'deny',
+      C003: p4 ? 'allow' : 'deny'
+    }
+  });
+}
 
 // Backup list containing the original blacklisted script elements
 export const backupScripts = {
