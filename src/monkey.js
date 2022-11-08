@@ -27,7 +27,8 @@ if (navigator.userAgent !== SCANNER_AGENT)
               originalDescriptors.type.set.call(this, TYPE_ATTRIBUTE)
             }
             originalDescriptors.src.set.call(this, value)
-          }
+          },
+          configurable: true
         },
         'type': {
           ...originalDescriptors.type,
@@ -42,16 +43,25 @@ if (navigator.userAgent !== SCANNER_AGENT)
           set(value) {
             const typeValue = isOnBlacklist(scriptElt.src, scriptElt.type) ? TYPE_ATTRIBUTE : value
             originalDescriptors.type.set.call(this, typeValue)
-          }
+          },
+          configurable: true
         }
       })
 
       // Monkey patch the setAttribute function so that the setter is called instead
       scriptElt.setAttribute = function(name, value) {
-        if (name === 'type' || name === 'src')
-          scriptElt[name] = value
-        else
+        if (name === 'type') {
+          const typeValue = isOnBlacklist(scriptElt.src, scriptElt.type) ? TYPE_ATTRIBUTE : value
+          originalDescriptors.type.set.call(scriptElt, typeValue)
+        } else if (name === 'src') {
+          // scriptElt[name] = value
+          if (isOnBlacklist(value, scriptElt.type)) {
+            originalDescriptors.type.set.call(scriptElt, TYPE_ATTRIBUTE)
+          }
+          originalDescriptors.src.set.call(scriptElt, value)
+        } else {
           HTMLScriptElement.prototype.setAttribute.call(scriptElt, name, value)
+        }
       }
     } catch (error) {
       // eslint-disable-next-line

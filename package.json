@@ -20,7 +20,7 @@
     "url": "https://github.com/elbywan/yett/issues"
   },
   "scripts": {
-    "build": "npm run lint && rollup -c && rollup -c rollup.config.modern.js && rollup -c --o docs/lib/yett.min.js && rollup -c --o test/scripts/yett.min.js",
+    "build": "npm run lint && rollup -c",
     "watch": "rollup -c -w -o docs/lib/yett.min.js",
     "serve": "http-server -c-1 docs",
     "dev": "concurrently \"npm run watch\" \"npm run serve\"",
