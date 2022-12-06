@@ -1,6 +1,10 @@
 import { COOKIE_NAME } from './constants';
 
-export const fixRegExp = (str) => new RegExp(str.replace(/[\\?.]/g, '\\$&'));
+// export const fixRegExp = (str) => new RegExp(str.replace(/[\\?.]/g, '\\$&'));
+
+export function fixRegExp(rule) {
+  return new RegExp(rule.replace(/[/\\.+?$()]/g, '\\$&').replace('*', '(.*)'));
+}
 
 export const toJson = (value) => {
   try {
@@ -30,5 +34,8 @@ export const getCookie = (name = COOKIE_NAME) => {
 };
 
 export const clog = (msg, fn = 'log') => {
-  console[fn](`PandectesRules: ${msg}`);
+  const p = new URLSearchParams(window.location.search);
+  if (p.get('rules_debug')) {
+    console[fn](`PandectesRules: ${msg}`);
+  }
 };

@@ -1,14 +1,14 @@
 import { TYPE_ATTRIBUTE } from './constants';
-import { clog } from './helpers';
+import { clog, fixRegExp } from './helpers';
 import { patterns, blacklisted } from './config';
 import { willScriptBeUnblocked } from './checks';
 import observer, { cssOnlyObserver } from './observer';
 
-const URL_REPLACER_REGEXP = new RegExp('[|\\{}()[\\]^$+*?.]', 'g');
-
 window.PandectesRules.unblockCss = (category) => {
-  clog(`Unblocking CSS for ${category}`);
   const bl = blacklisted.css[category] || [];
+  if (bl.length) {
+    clog(`Unblocking CSS for ${category}`);
+  }
   bl.forEach((href) => {
     const cssNode = document.querySelector(`link[data-href^="${href}"]`);
     cssNode.removeAttribute('data-href');
@@ -18,8 +18,10 @@ window.PandectesRules.unblockCss = (category) => {
 };
 
 window.PandectesRules.unblockIFrames = (category) => {
-  clog(`Unblocking IFrames for ${category}`);
   const bl = blacklisted.iframes[category] || [];
+  if (bl.length) {
+    clog(`Unblocking IFrames for ${category}`);
+  }
   // this must happen before you call iframeNode.src = ... two lines later
   patterns.iframesBlackList[category] = [];
   bl.forEach((src) => {
@@ -32,8 +34,10 @@ window.PandectesRules.unblockIFrames = (category) => {
 };
 
 window.PandectesRules.unblockBeacons = (category) => {
-  clog(`Unblocking Beacons for ${category}`);
   const bl = blacklisted.beacons[category] || [];
+  if (bl.length) {
+    clog(`Unblocking Beacons for ${category}`);
+  }
   // this must happen before you call iframeNode.src = ... two lines later
   patterns.beaconsBlackList[category] = [];
   bl.forEach((src) => {
@@ -70,7 +74,8 @@ window.PandectesRules.unblock = function (scriptUrlsOrRegexes) {
         ...scriptUrlsOrRegexes
           .map((urlOrRegexp) => {
             if (typeof urlOrRegexp === 'string') {
-              const escapedUrl = urlOrRegexp.replace(URL_REPLACER_REGEXP, '\\$&');
+              // const escapedUrl =  urlOrRegexp.replace(URL_REPLACER_REGEXP, '\\$&');
+              const escapedUrl = fixRegExp(urlOrRegexp);
               const permissiveRegexp = '.*' + escapedUrl + '.*';
               if (patterns.whiteList.every((p) => p.toString() !== permissiveRegexp.toString())) {
                 return new RegExp(permissiveRegexp);

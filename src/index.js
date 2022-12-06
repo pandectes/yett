@@ -1,7 +1,7 @@
 import './bootstrap';
 import { clog } from './helpers';
 import { isScanner, actualPreferences } from './config';
-import observer, { cssOnlyObserver } from './observer';
+import scriptsObserver, { cssOnlyObserver } from './observer';
 import monkey from './monkey';
 import './monkey';
 import './unblock';
@@ -11,21 +11,26 @@ import gcm from './gcm';
 
 window.PandectesRules.gcm = gcm;
 
-window.PandectesRules.manualBlacklist = { 1: [], 2: [], 4: [] };
+const {
+  banner: { isActive: isBannerActive },
+  blocker: { isActive: isBlockerActive },
+} = window.PandectesSettings;
 
-if (actualPreferences !== 0) {
-  if (isScanner === false && window.PandectesSettings.blocker.isActive) {
-    clog('Patching createElement');
-    document.createElement = monkey;
-    clog('Connecting observer');
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-    });
-  }
-} else {
+clog('Blocker -> ' + (isBlockerActive ? 'Active' : 'Inactive'));
+clog('Banner -> ' + (isBannerActive ? 'Active' : 'Inactive'));
+clog('ActualPrefs -> ' + actualPreferences);
+
+if (actualPreferences !== 0 && isScanner === false && isBlockerActive) {
+  clog('Blocker will execute');
+  document.createElement = monkey;
+  scriptsObserver.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
   cssOnlyObserver.observe(document.documentElement, {
     childList: true,
     subtree: true,
   });
+} else {
+  clog('Blocker will not execute');
 }

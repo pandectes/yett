@@ -2,9 +2,12 @@ import { SCANNER_AGENT } from './constants';
 import { getCookie, clog, fixRegExp } from './helpers';
 
 export const isScanner = window.navigator.userAgent === SCANNER_AGENT;
-clog(`userAgent -> ${window.navigator.userAgent}`);
+clog(`userAgent -> ${window.navigator.userAgent.substring(0, 50)}`);
 export const cookieValue = getCookie();
-export const { defaultBlocked } = window.PandectesSettings.blocker;
+export const {
+  banner: { isActive: bannerIsActive },
+  blocker: { defaultBlocked },
+} = window.PandectesSettings;
 
 // these are the initial preferences
 export const storedPreferences = cookieValue
@@ -13,7 +16,7 @@ export const storedPreferences = cookieValue
     : null
   : null;
 
-export const actualPreferences = storedPreferences === null ? defaultBlocked : storedPreferences;
+export const actualPreferences = bannerIsActive ? (storedPreferences === null ? defaultBlocked : storedPreferences) : 0;
 
 // this is the setup of the categories based on the initial preferences
 export const categoryAllowed = {
@@ -61,7 +64,5 @@ export const blacklisted = {
   beacons: { 1: [], 2: [], 4: [] },
   css: { 1: [], 2: [], 4: [] },
 };
-
-console.log(patterns);
 
 export { patterns };
