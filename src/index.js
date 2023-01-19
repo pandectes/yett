@@ -1,9 +1,9 @@
 import './bootstrap';
 import { clog } from './helpers';
-import { isScanner, actualPreferences } from './config';
+import { isScanner, actualPreferences, storedPreferences } from './config';
 import scriptsObserver, { cssOnlyObserver } from './observer';
 import monkey from './monkey';
-import './monkey';
+// import './monkey';
 import './unblock';
 import './shopify';
 import './gcm';
@@ -20,7 +20,9 @@ clog('Blocker -> ' + (isBlockerActive ? 'Active' : 'Inactive'));
 clog('Banner -> ' + (isBannerActive ? 'Active' : 'Inactive'));
 clog('ActualPrefs -> ' + actualPreferences);
 
-if (actualPreferences !== 0 && isScanner === false && isBlockerActive) {
+const onCheckoutWithoutConsent = storedPreferences === null && /\/checkouts\//.test(window.location.pathname);
+
+if (actualPreferences !== 0 && isScanner === false && isBlockerActive && !onCheckoutWithoutConsent) {
   clog('Blocker will execute');
   document.createElement = monkey;
   scriptsObserver.observe(document.documentElement, {

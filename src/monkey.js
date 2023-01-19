@@ -13,7 +13,11 @@ export default function (...args) {
   // If this is not a script tag, bypass
   const a0 = args[0].toLowerCase();
   if (a0 !== 'script') {
-    return createElementBackup.bind(document)(...args);
+    if (createElementBackup.bind) {
+      return createElementBackup.bind(document)(...args);
+    } else {
+      return createElementBackup;
+    }
   }
 
   const scriptElt = createElementBackup.bind(document)(...args);

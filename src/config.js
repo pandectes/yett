@@ -58,11 +58,11 @@ patterns.whiteList = whiteList.length ? whiteList.map(fixRegExp) : [];
 patterns.iframesWhiteList = iframesWhiteList.length ? iframesWhiteList.map(fixRegExp) : [];
 patterns.beaconsWhiteList = beaconsWhiteList.length ? beaconsWhiteList.map(fixRegExp) : [];
 
-export const blacklisted = {
+const blacklisted = {
   scripts: [],
   iframes: { 1: [], 2: [], 4: [] },
   beacons: { 1: [], 2: [], 4: [] },
   css: { 1: [], 2: [], 4: [] },
 };
 
-export { patterns };
+export { patterns, blacklisted };

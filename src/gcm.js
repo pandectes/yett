@@ -1,5 +1,5 @@
 import { clog } from './helpers';
-import { storedPreferences, actualPreferences, categoryAllowed } from './config';
+import { /* storedPreferences, */ actualPreferences, categoryAllowed } from './config';
 
 const {
   banner: { isActive: isBannerActive },
@@ -83,7 +83,10 @@ if (isBannerActive && isGcmActive) {
 
   gtag('consent', 'default', gcm.storage);
   if (customEvent) {
-    if (storedPreferences === null || /\/checkouts\//.test(window.location.pathname)) {
+    // fix for analyzify: do not fire event with default gtm event on page load
+    // unless on checkout page
+    // if (storedPreferences === null || /\/checkouts\//.test(window.location.pathname)) {
+    if (/\/checkouts\//.test(window.location.pathname)) {
       pushCustomEvent(actualPreferences);
     }
   }
