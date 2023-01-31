@@ -83,12 +83,7 @@ if (isBannerActive && isGcmActive) {
 
   gtag('consent', 'default', gcm.storage);
   if (customEvent) {
-    // fix for analyzify: do not fire event with default gtm event on page load
-    // unless on checkout page
-    // if (storedPreferences === null || /\/checkouts\//.test(window.location.pathname)) {
-    if (/\/checkouts\//.test(window.location.pathname)) {
-      pushCustomEvent(actualPreferences);
-    }
+    pushCustomEvent(actualPreferences);
   }
 
   clog('Google consent mode initialized');
