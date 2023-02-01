@@ -1,5 +1,5 @@
 import { clog } from './helpers';
-import { isScanner } from './config';
+import { isScanner, actualPreferences } from './config';
 
 const intervalId = setInterval(() => {
   if (window.Shopify) {
@@ -18,12 +18,14 @@ const intervalId = setInterval(() => {
             return;
           }
           clog('CustomerPrivacy API -> loaded successfully');
-          if (isScanner) {
+
+          const allowTracking = (actualPreferences & 2) === 0 || (actualPreferences & 4) === 0;
+          if (isScanner || allowTracking) {
             window.Shopify.customerPrivacy.setTrackingConsent(true, (response) => {
               if (response && response.error) {
                 clog('CustomerPrivacy API -> failed to allow tracking', 'error');
               }
-              clog('CustomerPrivacy API -> tracking allowed');
+              clog('CustomerPrivacy API (Rules) -> tracking allowed');
             });
           }
         },
