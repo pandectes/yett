@@ -1,6 +1,8 @@
 import { clog } from './helpers';
 import { isScanner, actualPreferences } from './config';
 
+const { blocker } = window.PandectesSettings;
+
 const intervalId = setInterval(() => {
   if (window.Shopify) {
     clearInterval(intervalId);
@@ -26,6 +28,17 @@ const intervalId = setInterval(() => {
                 clog('CustomerPrivacy API -> failed to allow tracking', 'error');
               }
               clog('CustomerPrivacy API (Rules) -> tracking allowed');
+            });
+          }
+
+          // CCPA
+          if (blocker.gpcIsActive && window.Shopify.customerPrivacy.getRegulation() === 'CCPA') {
+            const value = !navigator.globalPrivacyControl;
+            window.Shopify.customerPrivacy.setCCPAConsent(value, (response) => {
+              if (response && response.error) {
+                clog('CustomerPrivacy API -> failed to set CCPA consent', 'error');
+              }
+              clog('CustomerPrivacy API (Rules) -> CCPA data sell ' + (value ? 'allowed' : 'disallowed'));
             });
           }
         },
