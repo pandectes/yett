@@ -26,20 +26,26 @@ const intervalId = setInterval(() => {
             window.Shopify.customerPrivacy.setTrackingConsent(true, (response) => {
               if (response && response.error) {
                 clog('CustomerPrivacy API -> failed to allow tracking', 'error');
+              } else {
+                clog('CustomerPrivacy API (Rules) -> tracking allowed');
               }
-              clog('CustomerPrivacy API (Rules) -> tracking allowed');
             });
           }
 
           // CCPA
           if (blocker.gpcIsActive && window.Shopify.customerPrivacy.getRegulation() === 'CCPA') {
-            const value = !navigator.globalPrivacyControl;
-            window.Shopify.customerPrivacy.setCCPAConsent(value, (response) => {
-              if (response && response.error) {
-                clog('CustomerPrivacy API -> failed to set CCPA consent', 'error');
-              }
-              clog('CustomerPrivacy API (Rules) -> CCPA data sell ' + (value ? 'allowed' : 'disallowed'));
-            });
+            const value = navigator.globalPrivacyControl;
+            if (value !== undefined) {
+              window.Shopify.customerPrivacy.setCCPAConsent(!value, (response) => {
+                if (response && response.error) {
+                  clog('CustomerPrivacy API -> failed to set CCPA consent', 'error');
+                } else {
+                  clog('CustomerPrivacy API (Rules) -> CCPA data sell ' + (value ? 'disallowed' : 'allowed'));
+                }
+              });
+            } else {
+              clog('navigator.globalPrivacyControl is not set');
+            }
           }
         },
       );
