@@ -39,10 +39,10 @@ export function pushCustomEvent(preferences) {
     event: 'Pandectes_Consent_Update',
     pandectes_status: status,
     pandectes_categories: {
-      C000: 'allow',
-      C001: categoryAllowed[1] ? 'allow' : 'deny',
-      C002: categoryAllowed[2] ? 'allow' : 'deny',
-      C003: categoryAllowed[4] ? 'allow' : 'deny',
+      C0000: 'allow',
+      C0001: categoryAllowed[1] ? 'allow' : 'deny',
+      C0002: categoryAllowed[2] ? 'allow' : 'deny',
+      C0003: categoryAllowed[4] ? 'allow' : 'deny',
     },
   });
 }
