@@ -35,7 +35,7 @@ export const getCookie = (name = COOKIE_NAME) => {
 
 export const clog = (msg, fn = 'log') => {
   const p = new URLSearchParams(window.location.search);
-  if (p.get('rules_debug')) {
+  if (p.get('log')) {
     console[fn](`PandectesRules: ${msg}`);
   }
 };
