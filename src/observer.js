@@ -112,7 +112,6 @@ export default new MutationObserver((mutations) => {
             case 'C0002':
               block = true;
               window.PandectesRules.manualBlacklist[2].push(src);
-
               break;
             case 'targeting':
             case 'C0003':

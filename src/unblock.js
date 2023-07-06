@@ -49,6 +49,19 @@ window.PandectesRules.unblockBeacons = (category) => {
   blacklisted.beacons[category] = [];
 };
 
+window.PandectesRules.unblockInlineScripts = function (category) {
+  const cat = category === 1 ? 'functionality' : category === 2 ? 'performance' : 'targeting';
+  const scripts = document.querySelectorAll(`script[type="javascript/blocked"][data-cookiecategory="${cat}"]`);
+  scripts.forEach(function (s) {
+    const cnt = s.textContent;
+    s.parentNode.removeChild(s);
+    const newS = document.createElement('script');
+    newS.type = 'text/javascript'; // Set the new type attribute
+    newS.textContent = cnt;
+    document.body.appendChild(newS);
+  });
+};
+
 // Unblocks all (or a selection of) blacklisted scripts.
 window.PandectesRules.unblock = function (scriptUrlsOrRegexes) {
   if (scriptUrlsOrRegexes.length < 1) {
