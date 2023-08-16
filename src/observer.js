@@ -129,7 +129,7 @@ export default new MutationObserver((mutations) => {
           node.type = TYPE_ATTRIBUTE;
 
           // Firefox has this additional event which prevents scripts from beeing executed
-          const beforeScriptExecuteListener = function (event) {
+          const beforeScriptExecuteListener = function(event) {
             // Prevent only marked scripts from executing
             if (node.getAttribute('type') === TYPE_ATTRIBUTE) event.preventDefault();
             node.removeEventListener('beforescriptexecute', beforeScriptExecuteListener);

@@ -92,11 +92,12 @@ function handleCcpa() {
   if (
     blocker.gpcIsActive &&
     api.getRegulation() === 'CCPA' &&
-    currentConsent.gpc === 'no' &&
+    navigator.globalPrivacyControl &&
     currentConsent.sale_of_data !== 'yes'
   ) {
     const setConsentTo = { sale_of_data: false };
-    api.setTrackingConsent(setConsentTo, function (response) {
+    clog(`Shopify.customerPrivacy API - globalPrivacyControl is honored.`);
+    api.setTrackingConsent(setConsentTo, function(response) {
       if (response && response.error) {
         clog(`Shopify.customerPrivacy API - failed to setTrackingConsent({${JSON.stringify(setConsentTo)})`);
         return;
@@ -121,7 +122,7 @@ function handleGdpr() {
       api.analyticsProcessingAllowed() !== setConsentTo.analytics ||
       api.preferencesProcessingAllowed() !== setConsentTo.preferences
     ) {
-      api.setTrackingConsent(setConsentTo, function (response) {
+      api.setTrackingConsent(setConsentTo, function(response) {
         if (response && response.error) {
           clog(`Shopify.customerPrivacy API - failed to setTrackingConsent`);
           return;
