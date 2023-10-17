@@ -1,7 +1,9 @@
-import { SCANNER_AGENT } from './constants';
+// import { SCANNER_AGENT } from './constants';
 import { getCookie, clog, fixRegExp } from './helpers';
+import { checkIsScanner } from './scanner';
 
-export const isScanner = window.navigator.userAgent === SCANNER_AGENT;
+export const isScanner = checkIsScanner();
+
 clog(`userAgent -> ${window.navigator.userAgent.substring(0, 50)}`);
 export const cookieValue = getCookie();
 export const {
