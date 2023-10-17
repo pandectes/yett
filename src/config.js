@@ -18,7 +18,13 @@ export const storedPreferences = cookieValue
     : null
   : null;
 
-export const actualPreferences = bannerIsActive ? (storedPreferences === null ? defaultBlocked : storedPreferences) : 0;
+export const actualPreferences = isScanner
+  ? 0
+  : bannerIsActive
+  ? storedPreferences === null
+    ? defaultBlocked
+    : storedPreferences
+  : 0;
 
 // this is the setup of the categories based on the initial preferences
 export const categoryAllowed = {

@@ -108,7 +108,6 @@ function handleCcpa() {
 
 function handleGdpr() {
   const api = window.Shopify.trackingConsent;
-
   try {
     const hideNoAdmin = adminMode && !window.Shopify.AdminBarInjector;
     const setConsentTo = {

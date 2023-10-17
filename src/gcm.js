@@ -1,5 +1,5 @@
 import { clog } from './helpers';
-import { /* storedPreferences, */ actualPreferences, categoryAllowed } from './config';
+import { actualPreferences, categoryAllowed } from './config';
 
 const {
   banner: { isActive: isBannerActive },
