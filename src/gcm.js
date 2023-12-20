@@ -53,6 +53,8 @@ const gcm = {
   url_passthrough: false,
   storage: {
     ad_storage: 'granted',
+    ad_user_data: 'granted',
+    ad_personalization: 'granted',
     analytics_storage: 'granted',
     functionality_storage: 'granted',
     personalization_storage: 'granted',
@@ -72,6 +74,8 @@ if (isBannerActive && isGcmActive) {
   gcm.ads_data_redaction = adConfig === 'denied' && redactData;
   gcm.url_passthrough = urlPassthrough;
   gcm.storage.ad_storage = adConfig;
+  gcm.storage.ad_user_data = adConfig;
+  gcm.storage.ad_personalization = adConfig;
   gcm.storage.analytics_storage = analyticsConfig;
   gcm.storage.functionality_storage = functionalityConfig;
   gcm.storage.personalization_storage = personalizationConfig;
@@ -82,11 +86,11 @@ if (isBannerActive && isGcmActive) {
   gcm.url_passthrough && gtag('set', 'url_passthrough', gcm.url_passthrough);
 
   gtag('consent', 'default', gcm.storage);
-  if (customEvent) {
-    pushCustomEvent(actualPreferences);
-  }
-
   clog('Google consent mode initialized');
+}
+if (isBannerActive && customEvent) {
+  pushCustomEvent(actualPreferences);
+  clog('PandectesCustomEvent pushed to the dataLayer');
 }
 
 export default gcm;
