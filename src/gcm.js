@@ -14,16 +14,17 @@ const {
       functionalityStorageCategory,
       personalizationStorageCategory,
       securityStorageCategory,
+      dataLayerProperty = 'dataLayer',
     },
   },
 } = window.PandectesSettings;
 
 // initialize data layer
-window.dataLayer = window.dataLayer || [];
+window[dataLayerProperty] = window[dataLayerProperty] || [];
 
 // gtag function
 function gtag() {
-  window.dataLayer.push(arguments);
+  window[dataLayerProperty].push(arguments);
 }
 
 export function pushCustomEvent(preferences) {
@@ -35,7 +36,7 @@ export function pushCustomEvent(preferences) {
   } else {
     status = 'mixed';
   }
-  window.dataLayer.push({
+  window[dataLayerProperty].push({
     event: 'Pandectes_Consent_Update',
     pandectes_status: status,
     pandectes_categories: {
@@ -51,6 +52,7 @@ const gcm = {
   hasInitialized: false,
   ads_data_redaction: false,
   url_passthrough: false,
+  data_layer_property: 'dataLayer',
   storage: {
     ad_storage: 'granted',
     ad_user_data: 'granted',
@@ -80,6 +82,7 @@ if (isBannerActive && isGcmActive) {
   gcm.storage.functionality_storage = functionalityConfig;
   gcm.storage.personalization_storage = personalizationConfig;
   gcm.storage.security_storage = securityConfig;
+  gcm.data_layer_property = dataLayerProperty || 'dataLayer';
 
   gcm.ads_data_redaction && gtag('set', 'ads_data_redaction', gcm.ads_data_redaction);
 
