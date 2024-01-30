@@ -1,5 +1,6 @@
 import { clog } from './helpers';
 import { actualPreferences, categoryAllowed } from './config';
+import { globalSettings } from './settings';
 
 const {
   banner: { isActive: isBannerActive },
@@ -7,6 +8,8 @@ const {
     googleConsentMode: {
       isActive: isGcmActive,
       customEvent,
+      id,
+      analyticsId,
       redactData,
       urlPassthrough,
       adStorageCategory,
@@ -17,7 +20,7 @@ const {
       dataLayerProperty = 'dataLayer',
     },
   },
-} = window.PandectesSettings;
+} = globalSettings;
 
 // initialize data layer
 window[dataLayerProperty] = window[dataLayerProperty] || [];
@@ -90,6 +93,28 @@ if (isBannerActive && isGcmActive) {
 
   gtag('consent', 'default', gcm.storage);
   clog('Google consent mode initialized');
+
+  // inject if needed
+  if (id.length) {
+    console.log('adding google tag manager', id, gcm.data_layer_property);
+    window[gcm.data_layer_property].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+    window[gcm.data_layer_property].push({ 'pandectes.start': new Date().getTime(), event: 'pandectes-rules.min.js' });
+    const script = document.createElement('script');
+    const dl = gcm.data_layer_property !== 'dataLayer' ? `&l=${gcm.data_layer_property}` : ``;
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtm.js?id=${id}${dl}`;
+    document.head.appendChild(script);
+  }
+  if (analyticsId.length) {
+    console.log('adding analytics');
+    window[gcm.data_layer_property].push({ 'pandectes.start': new Date().getTime(), event: 'pandectes-rules.min.js' });
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
+    document.head.appendChild(script);
+    gtag('js', new Date());
+    gtag('config', analyticsId);
+  }
 }
 if (isBannerActive && customEvent) {
   pushCustomEvent(actualPreferences);

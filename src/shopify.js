@@ -1,11 +1,11 @@
 import { clog } from './helpers';
 import { isScanner, actualPreferences } from './config';
+import { globalSettings } from './settings';
 
 export const {
   store: { adminMode },
-} = window.PandectesSettings;
-
-const { blocker } = window.PandectesSettings;
+  blocker,
+} = globalSettings;
 
 function shopifyCommand(cb) {
   let intervalId = null;

@@ -3,6 +3,7 @@ import { clog } from './helpers';
 import { isScanner, actualPreferences, storedPreferences } from './config';
 import scriptsObserver, { cssOnlyObserver } from './observer';
 import monkey from './monkey';
+import { globalSettings } from './settings';
 // import './monkey';
 import './unblock';
 import './shopify';
@@ -14,7 +15,7 @@ window.PandectesRules.gcm = gcm;
 const {
   banner: { isActive: isBannerActive },
   blocker: { isActive: isBlockerActive },
-} = window.PandectesSettings;
+} = globalSettings;
 
 clog('Blocker -> ' + (isBlockerActive ? 'Active' : 'Inactive'));
 clog('Banner -> ' + (isBannerActive ? 'Active' : 'Inactive'));

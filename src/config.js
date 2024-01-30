@@ -1,6 +1,7 @@
 // import { SCANNER_AGENT } from './constants';
 import { getCookie, clog, fixRegExp } from './helpers';
 import { checkIsScanner } from './scanner';
+import { globalSettings } from './settings';
 
 export const isScanner = checkIsScanner();
 
@@ -8,8 +9,8 @@ clog(`userAgent -> ${window.navigator.userAgent.substring(0, 50)}`);
 export const cookieValue = getCookie();
 export const {
   banner: { isActive: bannerIsActive },
-  blocker: { defaultBlocked },
-} = window.PandectesSettings;
+  blocker: { defaultBlocked, patterns: globalPatterns },
+} = globalSettings;
 
 // these are the initial preferences
 export const storedPreferences = cookieValue
@@ -34,8 +35,7 @@ export const categoryAllowed = {
 };
 
 // calculate the patterns
-const { blackList, whiteList, iframesBlackList, iframesWhiteList, beaconsBlackList, beaconsWhiteList } =
-  window.PandectesSettings.blocker.patterns;
+const { blackList, whiteList, iframesBlackList, iframesWhiteList, beaconsBlackList, beaconsWhiteList } = globalPatterns;
 const patterns = {
   blackList: [],
   whiteList: [],

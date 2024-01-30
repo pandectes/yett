@@ -1,0 +1,14 @@
+node_modules/
+.git/
+!.env*
+!env*
+!.eslintrc*
+src/backend/shared/yett.min.js
+
+
+.yarn/
+coverage/
+build/
+dist/
+test/
+docs/

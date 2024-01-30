@@ -5,7 +5,8 @@ export default {
   input: 'src/index.js',
   output: {
     file: '../gdpr/src/backend/shared/yett.min.js',
-    format: "iife",
+    // file: './dist/yett.min.js',
+    format: 'iife',
     name: 'yett',
     sourcemap: false,
   },
