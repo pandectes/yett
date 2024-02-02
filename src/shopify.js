@@ -26,6 +26,10 @@ function shopifyCommand(cb) {
               return;
             }
             clog('Shopify.customerPrivacy API - loaded');
+            clog(
+              'Shopify.customerPrivacy.userCanBeTracked() default value: ' +
+                window.Shopify.trackingConsent.userCanBeTracked(),
+            );
             cb();
           },
         );
