@@ -1,11 +1,13 @@
 import { clog } from './helpers';
-import { isScanner, actualPreferences } from './config';
+import { isScanner, actualPreferences, storedPreferences } from './config';
 import { globalSettings } from './settings';
 
 export const {
   store: { adminMode },
   blocker,
 } = globalSettings;
+
+const { defaultBlocked } = blocker;
 
 function shopifyCommand(cb) {
   let intervalId = null;
@@ -59,6 +61,15 @@ function handleCcpa() {
 
 function handleGdpr() {
   const api = window.Shopify.trackingConsent;
+
+  if (api.shouldShowBanner() === false) {
+    // loose policy
+    if (storedPreferences === null && defaultBlocked === 7) {
+      // if the store has strick setup, you should not send the fake command
+      return;
+    }
+  }
+
   try {
     const hideNoAdmin = adminMode && !window.Shopify.AdminBarInjector;
     const setConsentTo = {
