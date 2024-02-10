@@ -71,7 +71,7 @@ function handleGdpr() {
   }
 
   try {
-    const hideNoAdmin = adminMode && !window.Shopify.AdminBarInjector;
+    const hideNoAdmin = adminMode && !(window.Shopify && window.Shopify.AdminBarInjector);
     const setConsentTo = {
       preferences: (actualPreferences & 1) === 0 || isScanner || hideNoAdmin,
       analytics: (actualPreferences & 2) === 0 || isScanner || hideNoAdmin,
