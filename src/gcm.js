@@ -96,7 +96,6 @@ if (isBannerActive && isGcmActive) {
 
   // inject if needed
   if (id.length) {
-    console.log('adding google tag manager', id, gcm.data_layer_property);
     window[gcm.data_layer_property].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
     window[gcm.data_layer_property].push({ 'pandectes.start': new Date().getTime(), event: 'pandectes-rules.min.js' });
     const script = document.createElement('script');
@@ -106,7 +105,6 @@ if (isBannerActive && isGcmActive) {
     document.head.appendChild(script);
   }
   if (analyticsId.length) {
-    console.log('adding analytics');
     window[gcm.data_layer_property].push({ 'pandectes.start': new Date().getTime(), event: 'pandectes-rules.min.js' });
     const script = document.createElement('script');
     script.async = true;
