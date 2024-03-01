@@ -18,6 +18,7 @@ const {
       personalizationStorageCategory,
       securityStorageCategory,
       dataLayerProperty = 'dataLayer',
+      waitForUpdate = 2000,
     },
   },
 } = globalSettings;
@@ -64,7 +65,7 @@ const gcm = {
     functionality_storage: 'granted',
     personalization_storage: 'granted',
     security_storage: 'granted',
-    wait_for_update: 500,
+    wait_for_update: 2000,
   },
 };
 
@@ -85,6 +86,7 @@ if (isBannerActive && isGcmActive) {
   gcm.storage.functionality_storage = functionalityConfig;
   gcm.storage.personalization_storage = personalizationConfig;
   gcm.storage.security_storage = securityConfig;
+  gcm.storage.wait_for_update = analyticsConfig === 'denied' || adConfig === 'denied' ? waitForUpdate : 2000;
   gcm.data_layer_property = dataLayerProperty || 'dataLayer';
 
   gcm.ads_data_redaction && gtag('set', 'ads_data_redaction', gcm.ads_data_redaction);
