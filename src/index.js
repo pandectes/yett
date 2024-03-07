@@ -8,6 +8,8 @@ import { globalSettings } from './settings';
 import './unblock';
 import './shopify';
 import './gcm';
+import './klaviyo';
+import './reopen';
 import gcm from './gcm';
 
 window.PandectesRules.gcm = gcm;

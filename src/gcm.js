@@ -19,12 +19,19 @@ const {
       securityStorageCategory,
       dataLayerProperty = 'dataLayer',
       waitForUpdate = 2000,
+      useNativeChannel = false,
     },
   },
 } = globalSettings;
 
 // initialize data layer
 window[dataLayerProperty] = window[dataLayerProperty] || [];
+
+// window[dataLayerProperty].push = function (...args) {
+//   console.log('Pushing items:', args);
+
+//   return Array.prototype.push.apply(this, args);
+// };
 
 // gtag function
 function gtag() {
@@ -76,6 +83,8 @@ if (isBannerActive && isGcmActive) {
   const personalizationConfig = (actualPreferences & personalizationStorageCategory) === 0 ? 'granted' : 'denied';
   const securityConfig = (actualPreferences & securityStorageCategory) === 0 ? 'granted' : 'denied';
 
+  const nativeKickedIn = (analyticsConfig === 'granted' || adConfig === 'granted') && useNativeChannel;
+
   gcm.hasInitialized = true;
   gcm.ads_data_redaction = adConfig === 'denied' && redactData;
   gcm.url_passthrough = urlPassthrough;
@@ -93,27 +102,36 @@ if (isBannerActive && isGcmActive) {
 
   gcm.url_passthrough && gtag('set', 'url_passthrough', gcm.url_passthrough);
 
-  gtag('consent', 'default', gcm.storage);
-  clog('Google consent mode initialized');
+  if (!nativeKickedIn) {
+    gtag('consent', 'default', gcm.storage);
+    clog('Native channel is off');
+    clog('Google consent initialized (Advanced mode)');
+  } else {
+    clog(nativeKickedIn ? 'Native channel has fired' : 'Native channel has not fired yet');
+  }
 
   // inject if needed
   if (id.length) {
     window[gcm.data_layer_property].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
     window[gcm.data_layer_property].push({ 'pandectes.start': new Date().getTime(), event: 'pandectes-rules.min.js' });
-    const script = document.createElement('script');
-    const dl = gcm.data_layer_property !== 'dataLayer' ? `&l=${gcm.data_layer_property}` : ``;
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtm.js?id=${id}${dl}`;
-    document.head.appendChild(script);
+    if (!nativeKickedIn) {
+      const script = document.createElement('script');
+      const dl = gcm.data_layer_property !== 'dataLayer' ? `&l=${gcm.data_layer_property}` : ``;
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtm.js?id=${id}${dl}`;
+      document.head.appendChild(script);
+    }
   }
   if (analyticsId.length) {
     window[gcm.data_layer_property].push({ 'pandectes.start': new Date().getTime(), event: 'pandectes-rules.min.js' });
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
-    document.head.appendChild(script);
-    gtag('js', new Date());
-    gtag('config', analyticsId);
+    if (!nativeKickedIn) {
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
+      document.head.appendChild(script);
+      gtag('js', new Date());
+      gtag('config', analyticsId, { send_page_view: !useNativeChannel });
+    }
   }
 }
 if (isBannerActive && customEvent) {
