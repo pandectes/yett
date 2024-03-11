@@ -8,8 +8,9 @@ const {
     googleConsentMode: {
       isActive: isGcmActive,
       customEvent,
-      id,
-      analyticsId,
+      id = '',
+      analyticsId = '',
+      adwordsId = '',
       redactData,
       urlPassthrough,
       adStorageCategory,
@@ -19,19 +20,12 @@ const {
       securityStorageCategory,
       dataLayerProperty = 'dataLayer',
       waitForUpdate = 2000,
-      useNativeChannel = false,
     },
   },
 } = globalSettings;
 
 // initialize data layer
 window[dataLayerProperty] = window[dataLayerProperty] || [];
-
-// window[dataLayerProperty].push = function (...args) {
-//   console.log('Pushing items:', args);
-
-//   return Array.prototype.push.apply(this, args);
-// };
 
 // gtag function
 function gtag() {
@@ -61,6 +55,7 @@ export function pushCustomEvent(preferences) {
 
 const gcm = {
   hasInitialized: false,
+  hasSentPageView: false,
   ads_data_redaction: false,
   url_passthrough: false,
   data_layer_property: 'dataLayer',
@@ -83,8 +78,6 @@ if (isBannerActive && isGcmActive) {
   const personalizationConfig = (actualPreferences & personalizationStorageCategory) === 0 ? 'granted' : 'denied';
   const securityConfig = (actualPreferences & securityStorageCategory) === 0 ? 'granted' : 'denied';
 
-  const nativeKickedIn = (analyticsConfig === 'granted' || adConfig === 'granted') && useNativeChannel;
-
   gcm.hasInitialized = true;
   gcm.ads_data_redaction = adConfig === 'denied' && redactData;
   gcm.url_passthrough = urlPassthrough;
@@ -102,37 +95,73 @@ if (isBannerActive && isGcmActive) {
 
   gcm.url_passthrough && gtag('set', 'url_passthrough', gcm.url_passthrough);
 
-  if (!nativeKickedIn) {
-    gtag('consent', 'default', gcm.storage);
-    clog('Native channel is off');
-    clog('Google consent initialized (Advanced mode)');
-  } else {
-    clog(nativeKickedIn ? 'Native channel has fired' : 'Native channel has not fired yet');
+  console.log('Pandectes: Google Consent Mode (Advanced/V2)');
+  gtag('consent', 'default', gcm.storage);
+
+  if (id.length || analyticsId.length || adwordsId.length) {
+    window[gcm.data_layer_property].push({ 'pandectes.start': new Date().getTime(), event: 'pandectes-rules.min.js' });
+    if (analyticsId.length || adwordsId.length) {
+      gtag('js', new Date());
+    }
   }
 
   // inject if needed
   if (id.length) {
     window[gcm.data_layer_property].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-    window[gcm.data_layer_property].push({ 'pandectes.start': new Date().getTime(), event: 'pandectes-rules.min.js' });
-    if (!nativeKickedIn) {
-      const script = document.createElement('script');
-      const dl = gcm.data_layer_property !== 'dataLayer' ? `&l=${gcm.data_layer_property}` : ``;
-      script.async = true;
-      script.src = `https://www.googletagmanager.com/gtm.js?id=${id}${dl}`;
-      document.head.appendChild(script);
-    }
+    const script = document.createElement('script');
+    const dl = gcm.data_layer_property !== 'dataLayer' ? `&l=${gcm.data_layer_property}` : ``;
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtm.js?id=${id}${dl}`;
+    document.head.appendChild(script);
   }
   if (analyticsId.length) {
-    window[gcm.data_layer_property].push({ 'pandectes.start': new Date().getTime(), event: 'pandectes-rules.min.js' });
-    if (!nativeKickedIn) {
-      const script = document.createElement('script');
-      script.async = true;
-      script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
-      document.head.appendChild(script);
-      gtag('js', new Date());
-      gtag('config', analyticsId, { send_page_view: !useNativeChannel });
-    }
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
+    document.head.appendChild(script);
+    gtag('config', analyticsId, { send_page_view: false });
   }
+  if (adwordsId.length) {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${adwordsId}`;
+    document.head.appendChild(script);
+    gtag('config', adwordsId);
+  }
+
+  window[dataLayerProperty].push = function (...args) {
+    if (args && args[0]) {
+      const cmd = args[0][0];
+      const mod = args[0][1];
+      const typ = args[0][2];
+      if (cmd === 'consent') {
+        if (
+          typ &&
+          typeof typ === 'object' &&
+          Object.values(typ).length === 4 &&
+          typ.ad_storage &&
+          typ.analytics_storage &&
+          typ.ad_user_data &&
+          typ.ad_personalization
+        ) {
+          // this is shopify
+          return;
+        }
+      } else if (cmd === 'config') {
+        if (mod === analyticsId || mod === adwordsId) {
+          return;
+        }
+      } else if (cmd === 'event' && mod === 'page_view') {
+        if (gcm.hasSentPageView === false) {
+          gcm.hasSentPageView = true;
+        } else {
+          return;
+        }
+      }
+    }
+
+    return Array.prototype.push.apply(this, args);
+  };
 }
 if (isBannerActive && customEvent) {
   pushCustomEvent(actualPreferences);
