@@ -21,7 +21,6 @@ const {
       dataLayerProperty = 'dataLayer',
       waitForUpdate = 0,
       useNativeChannel = false,
-      detectionWait = 300,
     },
   },
 } = globalSettings;
@@ -57,9 +56,7 @@ export function pushCustomEvent(preferences) {
 
 const gcm = {
   hasInitialized: false,
-  hasSentPageView: false,
   useNativeChannel: false,
-  detectedNativeChannel: false,
   ads_data_redaction: false,
   url_passthrough: false,
   data_layer_property: 'dataLayer',
@@ -101,98 +98,88 @@ if (isBannerActive && isGcmActive) {
 
   gcm.url_passthrough && gtag('set', 'url_passthrough', gcm.url_passthrough);
 
-  window[dataLayerProperty].push = function (...args) {
-    if (args && args[0]) {
-      const cmd = args[0][0];
-      const mod = args[0][1];
-      const typ = args[0][2];
+  if (gcm.useNativeChannel) {
+    window[dataLayerProperty].push = function (...args) {
+      if (args && args[0]) {
+        const cmd = args[0][0];
+        const mod = args[0][1];
+        const typ = args[0][2];
 
-      const isNative =
-        typ &&
-        typeof typ === 'object' &&
-        Object.values(typ).length === 4 &&
-        typ.ad_storage &&
-        typ.analytics_storage &&
-        typ.ad_user_data &&
-        typ.ad_personalization;
+        const isNative =
+          typ &&
+          typeof typ === 'object' &&
+          Object.values(typ).length === 4 &&
+          typ.ad_storage &&
+          typ.analytics_storage &&
+          typ.ad_user_data &&
+          typ.ad_personalization;
 
-      if (cmd === 'consent' && isNative) {
-        gcm.detectedNativeChannel = true;
-        if (mod === 'default') {
-          typ.functionality_storage = gcm.storage.functionality_storage;
-          typ.personalization_storage = gcm.storage.personalization_storage;
-          typ.security_storage = 'granted';
-          if (gcm.storage.wait_for_update) {
-            typ.wait_for_update = gcm.storage.wait_for_update;
+        if (cmd === 'consent' && isNative) {
+          if (mod === 'default') {
+            typ.functionality_storage = gcm.storage.functionality_storage;
+            typ.personalization_storage = gcm.storage.personalization_storage;
+            typ.security_storage = 'granted';
+            if (gcm.storage.wait_for_update) {
+              typ.wait_for_update = gcm.storage.wait_for_update;
+            }
+          } else if (mod === 'update') {
+            try {
+              const val = window.Shopify.customerPrivacy.preferencesProcessingAllowed() ? 'granted' : 'denied';
+              typ.functionality_storage = val;
+              typ.personalization_storage = val;
+            } catch (e) {
+              // do not do anything
+            }
+            typ.security_storage = 'granted';
           }
-        } else if (mod === 'update') {
-          try {
-            const val = window.Shopify.customerPrivacy.preferencesProcessingAllowed() ? 'granted' : 'denied';
-            typ.functionality_storage = val;
-            typ.personalization_storage = val;
-          } catch (e) {
-            // do not do anything
-          }
-          typ.security_storage = 'granted';
-        }
-      } else if (cmd === 'event' && mod === 'page_view') {
-        if (gcm.hasSentPageView === false) {
-          gcm.hasSentPageView = true;
-        } else {
-          return;
         }
       }
+
+      return Array.prototype.push.apply(this, args);
+    };
+  }
+
+  // own logic
+  if (useNativeChannel === false) {
+    console.log(`Pandectes: Google Consent Mode (av2)`);
+    gtag('consent', 'default', gcm.storage);
+  } else {
+    console.log(`Pandectes: Google Consent Mode (av2nc)`);
+  }
+
+  if (id.length || analyticsId.length || adwordsId.length) {
+    window[gcm.data_layer_property].push({
+      'pandectes.start': new Date().getTime(),
+      event: 'pandectes-rules.min.js',
+    });
+    if (analyticsId.length || adwordsId.length) {
+      gtag('js', new Date());
     }
+  }
 
-    return Array.prototype.push.apply(this, args);
-  };
-
-  setTimeout(
-    () => {
-      // own logic
-      if (useNativeChannel === false && gcm.detectedNativeChannel === false) {
-        console.log(`Pandectes: Google Consent Mode (av2${detectionWait})`);
-        gtag('consent', 'default', gcm.storage);
-      } else {
-        console.log(`Pandectes: Google Consent Mode (av2nc${detectionWait})`);
-      }
-
-      if (id.length || analyticsId.length || adwordsId.length) {
-        window[gcm.data_layer_property].push({
-          'pandectes.start': new Date().getTime(),
-          event: 'pandectes-rules.min.js',
-        });
-        if (analyticsId.length || adwordsId.length) {
-          gtag('js', new Date());
-        }
-      }
-
-      // inject if needed
-      if (id.length) {
-        window[gcm.data_layer_property].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-        const script = document.createElement('script');
-        const dl = gcm.data_layer_property !== 'dataLayer' ? `&l=${gcm.data_layer_property}` : ``;
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtm.js?id=${id}${dl}`;
-        document.head.appendChild(script);
-      }
-      if (analyticsId.length) {
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
-        document.head.appendChild(script);
-        gtag('config', analyticsId, { send_page_view: false });
-      }
-      if (adwordsId.length) {
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${adwordsId}`;
-        document.head.appendChild(script);
-        gtag('config', adwordsId);
-      }
-    },
-    useNativeChannel || gcm.detectedNativeChannel ? 0 : detectionWait,
-  );
+  // inject if needed
+  if (id.length) {
+    window[gcm.data_layer_property].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+    const script = document.createElement('script');
+    const dl = gcm.data_layer_property !== 'dataLayer' ? `&l=${gcm.data_layer_property}` : ``;
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtm.js?id=${id}${dl}`;
+    document.head.appendChild(script);
+  }
+  if (analyticsId.length) {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
+    document.head.appendChild(script);
+    gtag('config', analyticsId, { send_page_view: false });
+  }
+  if (adwordsId.length) {
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${adwordsId}`;
+    document.head.appendChild(script);
+    gtag('config', adwordsId);
+  }
 }
 
 if (isBannerActive && customEvent) {
