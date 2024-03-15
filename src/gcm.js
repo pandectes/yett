@@ -134,7 +134,7 @@ if (isBannerActive && isGcmActive) {
       const cmd = args[0][0];
       const mod = args[0][1];
       const typ = args[0][2];
-      if (cmd === 'consent') {
+      if (cmd === 'consent' && (mod === 'default' || mod === 'update')) {
         if (
           typ &&
           typeof typ === 'object' &&
