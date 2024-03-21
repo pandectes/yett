@@ -27,8 +27,9 @@ function shopifyCommand(cb) {
               clog('Shopify.customerPrivacy API - failed to load');
               return;
             }
-            clog('Shopify.customerPrivacy API - loaded');
-            clog('Shopify.customerPrivacy.shouldShowBanner() -> ' + window.Shopify.trackingConsent.shouldShowBanner());
+            clog(
+              `shouldShowBanner() -> ${window.Shopify.trackingConsent.shouldShowBanner()} | saleOfDataRegion() -> ${window.Shopify.trackingConsent.saleOfDataRegion()}`,
+            );
             cb();
           },
         );
@@ -54,7 +55,7 @@ function handleCcpa() {
         clog(`Shopify.customerPrivacy API - failed to setTrackingConsent({${JSON.stringify(setConsentTo)})`);
         return;
       }
-      clog(`Shopify.customerPrivacy API - setTrackingConsent(${JSON.stringify(setConsentTo)})`);
+      clog(`setTrackingConsent(${JSON.stringify(setConsentTo)})`);
     });
   }
 }
@@ -72,7 +73,7 @@ function handleGdpr() {
 
   try {
     const hideNoAdmin = adminMode && !(window.Shopify && window.Shopify.AdminBarInjector);
-    const setConsentTo = {
+    let setConsentTo = {
       preferences: (actualPreferences & 1) === 0 || isScanner || hideNoAdmin,
       analytics: (actualPreferences & 2) === 0 || isScanner || hideNoAdmin,
       marketing: (actualPreferences & 4) === 0 || isScanner || hideNoAdmin,
@@ -82,12 +83,15 @@ function handleGdpr() {
       api.analyticsProcessingAllowed() !== setConsentTo.analytics ||
       api.preferencesProcessingAllowed() !== setConsentTo.preferences
     ) {
+      if (setConsentTo.preferences && setConsentTo.analytics && setConsentTo.marketing) {
+        setConsentTo = true;
+      }
       api.setTrackingConsent(setConsentTo, function (response) {
         if (response && response.error) {
           clog(`Shopify.customerPrivacy API - failed to setTrackingConsent`);
           return;
         }
-        clog(`Shopify.customerPrivacy API - setTrackingConsent(${JSON.stringify(setConsentTo)})`);
+        clog(`setTrackingConsent(${JSON.stringify(setConsentTo)})`);
       });
     }
   } catch (e) {

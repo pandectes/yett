@@ -1,4 +1,3 @@
-import { clog } from './helpers';
 import { actualPreferences, categoryAllowed } from './config';
 import { globalSettings } from './settings';
 
@@ -100,6 +99,7 @@ if (isBannerActive && isGcmActive) {
 
   if (gcm.useNativeChannel) {
     window[dataLayerProperty].push = function (...args) {
+      let event = false;
       if (args && args[0]) {
         const cmd = args[0][0];
         const mod = args[0][1];
@@ -122,6 +122,7 @@ if (isBannerActive && isGcmActive) {
             if (gcm.storage.wait_for_update) {
               typ.wait_for_update = gcm.storage.wait_for_update;
             }
+            event = true;
           } else if (mod === 'update') {
             try {
               const val = window.Shopify.customerPrivacy.preferencesProcessingAllowed() ? 'granted' : 'denied';
@@ -135,10 +136,23 @@ if (isBannerActive && isGcmActive) {
         }
       }
 
-      return Array.prototype.push.apply(this, args);
+      const res = Array.prototype.push.apply(this, args);
+
+      if (event) {
+        window.dispatchEvent(new CustomEvent('PandectesEvent_NativeApp'));
+      }
+      return res;
     };
   }
 
+  if (useNativeChannel) {
+    window.addEventListener('PandectesEvent_NativeApp', runConsent);
+  } else {
+    runConsent();
+  }
+}
+
+function runConsent() {
   // own logic
   if (useNativeChannel === false) {
     console.log(`Pandectes: Google Consent Mode (av2)`);
@@ -178,13 +192,16 @@ if (isBannerActive && isGcmActive) {
     script.async = true;
     script.src = `https://www.googletagmanager.com/gtag/js?id=${adwordsId}`;
     document.head.appendChild(script);
-    gtag('config', adwordsId);
+    gtag('config', adwordsId, { allow_enhanced_conversions: true });
+  }
+
+  if (useNativeChannel) {
+    window.removeEventListener('PandectesEvent_NativeApp', runConsent);
   }
 }
 
 if (isBannerActive && customEvent) {
   pushCustomEvent(actualPreferences);
-  clog('PandectesCustomEvent pushed to the dataLayer');
 }
 
 export default gcm;

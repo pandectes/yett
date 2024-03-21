@@ -19,9 +19,9 @@ const {
   blocker: { isActive: isBlockerActive },
 } = globalSettings;
 
-clog('Blocker -> ' + (isBlockerActive ? 'Active' : 'Inactive'));
-clog('Banner -> ' + (isBannerActive ? 'Active' : 'Inactive'));
-clog('ActualPrefs -> ' + actualPreferences);
+clog(
+  `Prefs: ${actualPreferences} | Banner: ${isBannerActive ? 'on' : 'off'} | Blocker: ${isBlockerActive ? 'on' : 'off'}`,
+);
 
 const onCheckoutWithoutConsent = storedPreferences === null && /\/checkouts\//.test(window.location.pathname);
 
@@ -36,6 +36,4 @@ if (actualPreferences !== 0 && isScanner === false && isBlockerActive && !onChec
     childList: true,
     subtree: true,
   });
-} else {
-  clog('Blocker will not execute');
 }

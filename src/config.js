@@ -1,11 +1,10 @@
 // import { SCANNER_AGENT } from './constants';
-import { getCookie, clog, fixRegExp } from './helpers';
+import { getCookie, fixRegExp } from './helpers';
 import { checkIsScanner } from './scanner';
 import { globalSettings } from './settings';
 
 export const isScanner = checkIsScanner();
 
-clog(`userAgent -> ${window.navigator.userAgent.substring(0, 50)}`);
 export const cookieValue = getCookie();
 export const {
   banner: { isActive: bannerIsActive },
