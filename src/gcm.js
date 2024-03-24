@@ -1,4 +1,5 @@
 import { actualPreferences, categoryAllowed } from './config';
+import { createScript } from './helpers';
 import { globalSettings } from './settings';
 
 const {
@@ -172,27 +173,34 @@ function runConsent() {
   }
 
   // inject if needed
+  const google = 'https://www.googletagmanager.com';
   if (id.length) {
+    const gtmIds = id.split(',');
     window[gcm.data_layer_property].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-    const script = document.createElement('script');
-    const dl = gcm.data_layer_property !== 'dataLayer' ? `&l=${gcm.data_layer_property}` : ``;
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtm.js?id=${id}${dl}`;
-    document.head.appendChild(script);
+    for (let i = 0; i < gtmIds.length; i++) {
+      const dl = gcm.data_layer_property !== 'dataLayer' ? `&l=${gcm.data_layer_property}` : ``;
+      createScript(`${google}/gtm.js?id=${gtmIds[i].trim()}${dl}`);
+    }
   }
   if (analyticsId.length) {
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${analyticsId}`;
-    document.head.appendChild(script);
-    gtag('config', analyticsId, { send_page_view: false });
+    const analyticsIds = analyticsId.split(',');
+    for (let i = 0; i < analyticsIds.length; i++) {
+      const id = analyticsIds[i].trim();
+      if (id.length) {
+        createScript(`${google}/gtag/js?id=${id}`);
+        gtag('config', id, { send_page_view: false });
+      }
+    }
   }
   if (adwordsId.length) {
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${adwordsId}`;
-    document.head.appendChild(script);
-    gtag('config', adwordsId, { allow_enhanced_conversions: true });
+    const adwordsIds = adwordsId.split(',');
+    for (let i = 0; i < adwordsIds.length; i++) {
+      const id = adwordsIds[i].trim();
+      if (id.length) {
+        createScript(`${google}/gtag/js?id=${id}`);
+        gtag('config', id, { allow_enhanced_conversions: true });
+      }
+    }
   }
 
   if (useNativeChannel) {

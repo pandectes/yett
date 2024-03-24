@@ -83,9 +83,7 @@ function handleGdpr() {
       api.analyticsProcessingAllowed() !== setConsentTo.analytics ||
       api.preferencesProcessingAllowed() !== setConsentTo.preferences
     ) {
-      if (setConsentTo.preferences && setConsentTo.analytics && setConsentTo.marketing) {
-        setConsentTo = true;
-      }
+      setConsentTo.sale_of_data = setConsentTo.marketing;
       api.setTrackingConsent(setConsentTo, function (response) {
         if (response && response.error) {
           clog(`Shopify.customerPrivacy API - failed to setTrackingConsent`);

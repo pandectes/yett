@@ -39,3 +39,10 @@ export const clog = (msg, fn = 'log') => {
     console[fn](`PandectesRules: ${msg}`);
   }
 };
+
+export function createScript(src) {
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = src;
+  document.head.appendChild(script);
+}
