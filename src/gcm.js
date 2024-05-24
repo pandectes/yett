@@ -1,9 +1,21 @@
-import { actualPreferences, categoryAllowed } from './config';
+import { actualPreferences, categoryAllowed, storedPreferences } from './config';
 import { createScript } from './helpers';
 import { globalSettings } from './settings';
+import { EU_COUNTRY_CODES } from './counties';
 
 const {
   banner: { isActive: isBannerActive },
+  geolocation: {
+    caOnly = false,
+    euOnly = false,
+    brOnly = false,
+    jpOnly = false,
+    thOnly = false,
+    chOnly = false,
+    zaOnly = false,
+    canadaOnly = false,
+    globalVisibility = true,
+  },
   blocker: {
     googleConsentMode: {
       isActive: isGcmActive,
@@ -100,7 +112,6 @@ if (isBannerActive && isGcmActive) {
 
   if (gcm.useNativeChannel) {
     window[dataLayerProperty].push = function (...args) {
-      let event = false;
       if (args && args[0]) {
         const cmd = args[0][0];
         const mod = args[0][1];
@@ -123,7 +134,6 @@ if (isBannerActive && isGcmActive) {
             if (gcm.storage.wait_for_update) {
               typ.wait_for_update = gcm.storage.wait_for_update;
             }
-            event = true;
           } else if (mod === 'update') {
             try {
               const val = window.Shopify.customerPrivacy.preferencesProcessingAllowed() ? 'granted' : 'denied';
@@ -137,29 +147,50 @@ if (isBannerActive && isGcmActive) {
         }
       }
 
-      const res = Array.prototype.push.apply(this, args);
-
-      if (event) {
-        window.dispatchEvent(new CustomEvent('PandectesEvent_NativeApp'));
-      }
-      return res;
+      return Array.prototype.push.apply(this, args);
     };
   }
 
-  if (useNativeChannel) {
-    window.addEventListener('PandectesEvent_NativeApp', runConsent);
-  } else {
-    runConsent();
-  }
+  runConsent();
 }
 
 function runConsent() {
   // own logic
   if (useNativeChannel === false) {
     console.log(`Pandectes: Google Consent Mode (av2)`);
-    gtag('consent', 'default', gcm.storage);
   } else {
     console.log(`Pandectes: Google Consent Mode (av2nc)`);
+  }
+  if (globalVisibility) {
+    gtag('consent', 'default', gcm.storage);
+  } else {
+    console.log(storedPreferences);
+    if (storedPreferences === null) {
+      gtag('consent', 'default', {
+        ...gcm.storage,
+        region: [
+          ...(euOnly ? EU_COUNTRY_CODES : []),
+          ...(caOnly ? ['US-CA', 'US-VA', 'US-CT', 'US-UT', 'US-CO'] : []),
+          ...(brOnly ? ['BR'] : []),
+          ...(jpOnly ? ['JP'] : []),
+          ...(canadaOnly ? ['CA'] : []),
+          ...(thOnly ? ['TH'] : []),
+          ...(chOnly ? ['CH'] : []),
+          ...(zaOnly ? ['ZA'] : []),
+        ],
+      });
+      gtag('consent', 'default', {
+        ad_storage: 'granted',
+        ad_user_data: 'granted',
+        ad_personalization: 'granted',
+        analytics_storage: 'granted',
+        functionality_storage: 'granted',
+        personalization_storage: 'granted',
+        security_storage: 'granted',
+      });
+    } else {
+      gtag('consent', 'default', gcm.storage);
+    }
   }
 
   if (id.length || analyticsId.length || adwordsId.length) {
@@ -201,10 +232,6 @@ function runConsent() {
         gtag('config', id, { allow_enhanced_conversions: true });
       }
     }
-  }
-
-  if (useNativeChannel) {
-    window.removeEventListener('PandectesEvent_NativeApp', runConsent);
   }
 }
 

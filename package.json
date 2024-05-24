@@ -28,7 +28,7 @@
     "test:whitelist": "WHITELIST=1 karma start --single-run --browsers ChromeHeadless,FirefoxHeadless,Safari karma.conf.js",
     "test": "npm run test:blacklist && npm run test:whitelist",
     "lint": "eslint src",
-    "start": "rollup -c -w -o ../gdpr-production/src/backend/shared/yett.min.js"
+    "start": "rollup -c -w -o ../gdpr-app/src/backend/shared/yett.min.js"
   },
   "author": "Julien Elbaz",
   "contributors": [

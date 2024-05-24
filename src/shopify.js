@@ -4,6 +4,7 @@ import { globalSettings } from './settings';
 
 export const {
   store: { adminMode },
+  banner: { isActive: isBannerActive },
   blocker,
 } = globalSettings;
 
@@ -97,7 +98,9 @@ function handleGdpr() {
   }
 }
 
-shopifyCommand(() => {
-  handleGdpr();
-  handleCcpa();
-});
+if (isBannerActive) {
+  shopifyCommand(() => {
+    handleGdpr();
+    handleCcpa();
+  });
+}
