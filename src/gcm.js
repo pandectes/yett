@@ -4,7 +4,7 @@ import { globalSettings } from './settings';
 import { EU_COUNTRY_CODES } from './counties';
 
 const {
-  banner: { isActive: isBannerActive },
+  banner: { isActive: isBannerActive, hybridStrict },
   geolocation: {
     caOnly = false,
     euOnly = false,
@@ -161,7 +161,7 @@ function runConsent() {
   } else {
     console.log(`Pandectes: Google Consent Mode (av2nc)`);
   }
-  if (globalVisibility) {
+  if (globalVisibility && !hybridStrict) {
     gtag('consent', 'default', gcm.storage);
   } else {
     console.log(storedPreferences);
@@ -169,14 +169,14 @@ function runConsent() {
       gtag('consent', 'default', {
         ...gcm.storage,
         region: [
-          ...(euOnly ? EU_COUNTRY_CODES : []),
-          ...(caOnly ? ['US-CA', 'US-VA', 'US-CT', 'US-UT', 'US-CO'] : []),
-          ...(brOnly ? ['BR'] : []),
-          ...(jpOnly ? ['JP'] : []),
-          ...(canadaOnly ? ['CA'] : []),
-          ...(thOnly ? ['TH'] : []),
-          ...(chOnly ? ['CH'] : []),
-          ...(zaOnly ? ['ZA'] : []),
+          ...(euOnly || hybridStrict ? EU_COUNTRY_CODES : []),
+          ...(caOnly && !hybridStrict ? ['US-CA', 'US-VA', 'US-CT', 'US-UT', 'US-CO'] : []),
+          ...(brOnly && !hybridStrict ? ['BR'] : []),
+          ...(jpOnly && !hybridStrict ? ['JP'] : []),
+          ...(canadaOnly && !hybridStrict ? ['CA'] : []),
+          ...(thOnly && !hybridStrict ? ['TH'] : []),
+          ...(chOnly && !hybridStrict ? ['CH'] : []),
+          ...(zaOnly && !hybridStrict ? ['ZA'] : []),
         ],
       });
       gtag('consent', 'default', {
