@@ -11,6 +11,11 @@ export const {
 const { defaultBlocked } = blocker;
 
 function shopifyCommand(cb) {
+  if (window.Shopify && window.Shopify.customerPrivacy) {
+    cb();
+    return;
+  }
+
   let intervalId = null;
   if (!window.Shopify || !window.Shopify.loadFeatures || !window.Shopify.trackingConsent) {
     intervalId = setInterval(() => {
