@@ -3,7 +3,7 @@ import { isScanner, actualPreferences, storedPreferences } from './config';
 import { globalSettings } from './settings';
 
 export const {
-  store: { adminMode },
+  store: { adminMode, headless, storefrontRootDomain, checkoutRootDomain, storefrontAccessToken },
   banner: { isActive: isBannerActive },
   blocker,
 } = globalSettings;
@@ -49,13 +49,19 @@ function shopifyCommand(cb) {
 function handleCcpa() {
   const api = window.Shopify.trackingConsent;
   const currentConsent = api.currentVisitorConsent();
-  if (
-    blocker.gpcIsActive &&
-    api.getRegulation() === 'CCPA' &&
-    currentConsent.gpc === 'no' &&
-    currentConsent.sale_of_data !== 'yes'
-  ) {
+  if (blocker.gpcIsActive && navigator.globalPrivacyControl && currentConsent.sale_of_data === '') {
     const setConsentTo = { sale_of_data: false };
+    if (headless) {
+      setConsentTo.headlessStorefront = true;
+      setConsentTo.storefrontRootDomain = storefrontRootDomain?.length
+        ? storefrontRootDomain
+        : window.location.hostname;
+      setConsentTo.checkoutRootDomain = checkoutRootDomain?.length
+        ? checkoutRootDomain
+        : `checkout.${window.location.hostname}`;
+      setConsentTo.storefrontAccessToken = storefrontAccessToken?.length ? storefrontAccessToken : '';
+    }
+
     api.setTrackingConsent(setConsentTo, function (response) {
       if (response && response.error) {
         clog(`Shopify.customerPrivacy API - failed to setTrackingConsent({${JSON.stringify(setConsentTo)})`);
@@ -84,12 +90,22 @@ function handleGdpr() {
       analytics: (actualPreferences & 2) === 0 || isScanner || hideNoAdmin,
       marketing: (actualPreferences & 4) === 0 || isScanner || hideNoAdmin,
     };
+    if (headless) {
+      setConsentTo.headlessStorefront = true;
+      setConsentTo.storefrontRootDomain = storefrontRootDomain?.length
+        ? storefrontRootDomain
+        : window.location.hostname;
+      setConsentTo.checkoutRootDomain = checkoutRootDomain?.length
+        ? checkoutRootDomain
+        : `checkout.${window.location.hostname}`;
+      setConsentTo.storefrontAccessToken = storefrontAccessToken?.length ? storefrontAccessToken : '';
+    }
     if (
       api.firstPartyMarketingAllowed() !== setConsentTo.marketing ||
       api.analyticsProcessingAllowed() !== setConsentTo.analytics ||
       api.preferencesProcessingAllowed() !== setConsentTo.preferences
     ) {
-      setConsentTo.sale_of_data = setConsentTo.marketing;
+      // setConsentTo.sale_of_data = setConsentTo.marketing;
       api.setTrackingConsent(setConsentTo, function (response) {
         if (response && response.error) {
           clog(`Shopify.customerPrivacy API - failed to setTrackingConsent`);
