@@ -47,11 +47,11 @@ function shopifyCommand(cb) {
 }
 
 function handleCcpa() {
-  const api = window.Shopify.trackingConsent;
-  const currentConsent = api.currentVisitorConsent();
-  if (blocker.gpcIsActive && navigator.globalPrivacyControl && currentConsent.sale_of_data === '') {
-    const setConsentTo = { sale_of_data: false };
-    if (headless) {
+  if (headless) {
+    const api = window.Shopify.trackingConsent;
+    const currentConsent = api.currentVisitorConsent();
+    if (navigator.globalPrivacyControl && currentConsent.sale_of_data === '') {
+      const setConsentTo = { sale_of_data: false };
       setConsentTo.headlessStorefront = true;
       setConsentTo.storefrontRootDomain = storefrontRootDomain?.length
         ? storefrontRootDomain
@@ -60,15 +60,15 @@ function handleCcpa() {
         ? checkoutRootDomain
         : `checkout.${window.location.hostname}`;
       setConsentTo.storefrontAccessToken = storefrontAccessToken?.length ? storefrontAccessToken : '';
-    }
 
-    api.setTrackingConsent(setConsentTo, function (response) {
-      if (response && response.error) {
-        clog(`Shopify.customerPrivacy API - failed to setTrackingConsent({${JSON.stringify(setConsentTo)})`);
-        return;
-      }
-      clog(`setTrackingConsent(${JSON.stringify(setConsentTo)})`);
-    });
+      api.setTrackingConsent(setConsentTo, function (response) {
+        if (response && response.error) {
+          clog(`Shopify.customerPrivacy API - failed to setTrackingConsent({${JSON.stringify(setConsentTo)})`);
+          return;
+        }
+        clog(`setTrackingConsent(${JSON.stringify(setConsentTo)})`);
+      });
+    }
   }
 }
 
