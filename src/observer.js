@@ -1,6 +1,7 @@
 import { TYPE_ATTRIBUTE } from './constants';
 import { blacklisted } from './config';
 import { shouldBlockScript, shouldBlockIFrame, shouldBlockBeacon } from './checks';
+import { clog } from './helpers';
 
 export const cssOnlyObserver = new MutationObserver((mutations) => {
   for (let i = 0; i < mutations.length; i++) {
@@ -100,25 +101,29 @@ export default new MutationObserver((mutations) => {
         let block = false;
 
         if (shouldBlockScript(src, type)) {
+          clog(`rule blocked: ${src}`);
           block = true;
         } else if (src && cookieCategory) {
-          switch (cookieCategory) {
-            case 'functionality':
-            case 'C0001':
-              block = true;
-              window.PandectesRules.manualBlacklist[1].push(src);
-              break;
-            case 'performance':
-            case 'C0002':
-              block = true;
-              window.PandectesRules.manualBlacklist[2].push(src);
-              break;
-            case 'targeting':
-            case 'C0003':
-              block = true;
-              window.PandectesRules.manualBlacklist[4].push(src);
-              break;
-          }
+          // switch (cookieCategory) {
+          //   case 'functionality':
+          //   case 'C0001':
+          //     block = true;
+          //     window.PandectesRules.manualBlacklist[1].push(src);
+          //     break;
+          //   case 'performance':
+          //   case 'C0002':
+          //     block = true;
+          //     window.PandectesRules.manualBlacklist[2].push(src);
+          //     break;
+          //   case 'targeting':
+          //   case 'C0003':
+          //     block = true;
+          //     window.PandectesRules.manualBlacklist[4].push(src);
+          //     break;
+          // }
+          clog(`manually blocked @ ${cookieCategory}: ${src}`);
+        } else if (cookieCategory) {
+          clog(`manually blocked @ ${cookieCategory}: inline code`);
         }
 
         if (block) {

@@ -1,4 +1,3 @@
-import { TYPE_ATTRIBUTE } from './constants';
 import { clog, fixRegExp } from './helpers';
 import { patterns, blacklisted } from './config';
 import { willScriptBeUnblocked } from './checks';
@@ -52,13 +51,17 @@ window.PandectesRules.unblockBeacons = (category) => {
 window.PandectesRules.unblockInlineScripts = function (category) {
   const cat = category === 1 ? 'functionality' : category === 2 ? 'performance' : 'targeting';
   const scripts = document.querySelectorAll(`script[type="javascript/blocked"][data-cookiecategory="${cat}"]`);
+  clog(`unblockInlineScripts: ${scripts.length} in ${cat}`);
   scripts.forEach(function (s) {
-    const cnt = s.textContent;
-    s.parentNode.removeChild(s);
     const newS = document.createElement('script');
     newS.type = 'text/javascript'; // Set the new type attribute
-    newS.textContent = cnt;
-    document.body.appendChild(newS);
+    if (s.hasAttribute('src')) {
+      newS.src = s.getAttribute('src');
+    } else {
+      newS.textContent = s.textContent;
+    }
+    document.head.appendChild(newS);
+    s.parentNode.removeChild(s);
   });
 };
 
@@ -106,14 +109,14 @@ window.PandectesRules.unblock = function (scriptUrlsOrRegexes) {
   }
 
   // Parse existing script tags with a marked type
-  const tags = document.querySelectorAll(`script[type="${TYPE_ATTRIBUTE}"]`);
-  for (let i = 0; i < tags.length; i++) {
-    const script = tags[i];
-    if (willScriptBeUnblocked(script)) {
-      blacklisted.scripts.push([script, 'application/javascript']);
-      script.parentElement.removeChild(script);
-    }
-  }
+  // const tags = document.querySelectorAll(`script[type="${TYPE_ATTRIBUTE}"]`);
+  // for (let i = 0; i < tags.length; i++) {
+  //   const script = tags[i];
+  //   if (willScriptBeUnblocked(script)) {
+  //     blacklisted.scripts.push([script, 'application/javascript']);
+  //     script.parentElement.removeChild(script);
+  //   }
+  // }
 
   // Exclude 'whitelisted' scripts from the blacklist and append them to <head>
   let indexOffset = 0;
@@ -149,3 +152,4 @@ window.PandectesRules.unblock = function (scriptUrlsOrRegexes) {
     cssOnlyObserver.disconnect();
   }
 };
+// window.PandectesRules.unblock = function () {};
