@@ -65,6 +65,15 @@ window.PandectesRules.unblockInlineScripts = function (category) {
   });
 };
 
+window.PandectesRules.unblockInlineCss = function (category) {
+  const cat = category === 1 ? 'functionality' : category === 2 ? 'performance' : 'targeting';
+  const links = document.querySelectorAll(`link[data-cookiecategory="${cat}"]`);
+  clog(`unblockInlineCss: ${links.length} in ${cat}`);
+  links.forEach(function (s) {
+    s.href = s.getAttribute('data-href');
+  });
+};
+
 // Unblocks all (or a selection of) blacklisted scripts.
 window.PandectesRules.unblock = function (scriptUrlsOrRegexes) {
   if (scriptUrlsOrRegexes.length < 1) {

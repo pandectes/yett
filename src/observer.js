@@ -78,24 +78,6 @@ export default new MutationObserver((mutations) => {
             node.setAttribute('data-src', src);
           }
         }
-      } else if (node.nodeType === 1 && node.tagName === 'LINK') {
-        const href = node.dataset && node.dataset.href;
-        if (href && cookieCategory) {
-          switch (cookieCategory) {
-            case 'functionality':
-            case 'C0001':
-              blacklisted.css[1].push(href);
-              break;
-            case 'performance':
-            case 'C0002':
-              blacklisted.css[2].push(href);
-              break;
-            case 'targeting':
-            case 'C0003':
-              blacklisted.css[4].push(href);
-              break;
-          }
-        }
       } else if (node.nodeType === 1 && node.tagName === 'SCRIPT') {
         const type = node.type;
         let block = false;
