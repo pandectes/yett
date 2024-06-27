@@ -1,4 +1,4 @@
-import { actualPreferences, categoryAllowed, storedPreferences } from './config';
+import { actualPreferences, categoryAllowed } from './config';
 import { createScript } from './helpers';
 import { globalSettings } from './settings';
 import { EU_COUNTRY_CODES } from './counties';
@@ -17,6 +17,7 @@ const {
     globalVisibility = true,
   },
   blocker: {
+    defaultBlocked = 7,
     googleConsentMode: {
       isActive: isGcmActive,
       customEvent,
@@ -84,16 +85,16 @@ const gcm = {
 };
 
 if (isBannerActive && isGcmActive) {
-  const adConfig = (actualPreferences & adStorageCategory) === 0 ? 'granted' : 'denied';
-  const analyticsConfig = (actualPreferences & analyticsStorageCategory) === 0 ? 'granted' : 'denied';
-  const functionalityConfig = (actualPreferences & functionalityStorageCategory) === 0 ? 'granted' : 'denied';
-  const personalizationConfig = (actualPreferences & personalizationStorageCategory) === 0 ? 'granted' : 'denied';
-  const securityConfig = (actualPreferences & securityStorageCategory) === 0 ? 'granted' : 'denied';
+  const adConfig = (defaultBlocked & adStorageCategory) === 0 ? 'granted' : 'denied';
+  const analyticsConfig = (defaultBlocked & analyticsStorageCategory) === 0 ? 'granted' : 'denied';
+  const functionalityConfig = (defaultBlocked & functionalityStorageCategory) === 0 ? 'granted' : 'denied';
+  const personalizationConfig = (defaultBlocked & personalizationStorageCategory) === 0 ? 'granted' : 'denied';
+  const securityConfig = (defaultBlocked & securityStorageCategory) === 0 ? 'granted' : 'denied';
 
   gcm.hasInitialized = true;
   gcm.useNativeChannel = useNativeChannel;
-  gcm.ads_data_redaction = adConfig === 'denied' && redactData;
   gcm.url_passthrough = urlPassthrough;
+  gcm.ads_data_redaction = adConfig === 'denied' && redactData;
   gcm.storage.ad_storage = adConfig;
   gcm.storage.ad_user_data = adConfig;
   gcm.storage.ad_personalization = adConfig;
@@ -101,11 +102,8 @@ if (isBannerActive && isGcmActive) {
   gcm.storage.functionality_storage = functionalityConfig;
   gcm.storage.personalization_storage = personalizationConfig;
   gcm.storage.security_storage = securityConfig;
-  if (waitForUpdate) {
-    gcm.storage.wait_for_update = analyticsConfig === 'denied' || adConfig === 'denied' ? waitForUpdate : 0;
-  }
-  gcm.data_layer_property = dataLayerProperty || 'dataLayer';
 
+  gcm.data_layer_property = dataLayerProperty || 'dataLayer';
   gcm.ads_data_redaction && gtag('set', 'ads_data_redaction', gcm.ads_data_redaction);
 
   gcm.url_passthrough && gtag('set', 'url_passthrough', gcm.url_passthrough);
@@ -161,36 +159,56 @@ function runConsent() {
   } else {
     console.log(`Pandectes: Google Consent Mode (av2nc)`);
   }
+
+  const wait =
+    actualPreferences !== defaultBlocked
+      ? { wait_for_update: waitForUpdate || 500 }
+      : waitForUpdate
+        ? { wait_for_update: waitForUpdate }
+        : {};
+
   if (globalVisibility && !hybridStrict) {
-    gtag('consent', 'default', gcm.storage);
+    gtag('consent', 'default', { ...gcm.storage, ...wait });
   } else {
-    console.log(storedPreferences);
-    if (storedPreferences === null) {
-      gtag('consent', 'default', {
-        ...gcm.storage,
-        region: [
-          ...(euOnly || hybridStrict ? EU_COUNTRY_CODES : []),
-          ...(caOnly && !hybridStrict ? ['US-CA', 'US-VA', 'US-CT', 'US-UT', 'US-CO'] : []),
-          ...(brOnly && !hybridStrict ? ['BR'] : []),
-          ...(jpOnly && !hybridStrict ? ['JP'] : []),
-          ...(canadaOnly && !hybridStrict ? ['CA'] : []),
-          ...(thOnly && !hybridStrict ? ['TH'] : []),
-          ...(chOnly && !hybridStrict ? ['CH'] : []),
-          ...(zaOnly && !hybridStrict ? ['ZA'] : []),
-        ],
-      });
-      gtag('consent', 'default', {
-        ad_storage: 'granted',
-        ad_user_data: 'granted',
-        ad_personalization: 'granted',
-        analytics_storage: 'granted',
-        functionality_storage: 'granted',
-        personalization_storage: 'granted',
-        security_storage: 'granted',
-      });
-    } else {
-      gtag('consent', 'default', gcm.storage);
-    }
+    gtag('consent', 'default', {
+      ...gcm.storage,
+      ...wait,
+      region: [
+        ...(euOnly || hybridStrict ? EU_COUNTRY_CODES : []),
+        ...(caOnly && !hybridStrict ? ['US-CA', 'US-VA', 'US-CT', 'US-UT', 'US-CO'] : []),
+        ...(brOnly && !hybridStrict ? ['BR'] : []),
+        ...(jpOnly && !hybridStrict ? ['JP'] : []),
+        ...(canadaOnly && !hybridStrict ? ['CA'] : []),
+        ...(thOnly && !hybridStrict ? ['TH'] : []),
+        ...(chOnly && !hybridStrict ? ['CH'] : []),
+        ...(zaOnly && !hybridStrict ? ['ZA'] : []),
+      ],
+    });
+    gtag('consent', 'default', {
+      ad_storage: 'granted',
+      ad_user_data: 'granted',
+      ad_personalization: 'granted',
+      analytics_storage: 'granted',
+      functionality_storage: 'granted',
+      personalization_storage: 'granted',
+      security_storage: 'granted',
+    });
+  }
+
+  if (defaultBlocked !== actualPreferences) {
+    const adConfig = (actualPreferences & adStorageCategory) === 0 ? 'granted' : 'denied';
+    const analyticsConfig = (actualPreferences & analyticsStorageCategory) === 0 ? 'granted' : 'denied';
+    const functionalityConfig = (actualPreferences & functionalityStorageCategory) === 0 ? 'granted' : 'denied';
+    const personalizationConfig = (actualPreferences & personalizationStorageCategory) === 0 ? 'granted' : 'denied';
+    const securityConfig = (actualPreferences & securityStorageCategory) === 0 ? 'granted' : 'denied';
+    gcm.storage.ad_storage = adConfig;
+    gcm.storage.ad_user_data = adConfig;
+    gcm.storage.ad_personalization = adConfig;
+    gcm.storage.analytics_storage = analyticsConfig;
+    gcm.storage.functionality_storage = functionalityConfig;
+    gcm.storage.personalization_storage = personalizationConfig;
+    gcm.storage.security_storage = securityConfig;
+    gtag('consent', 'update', gcm.storage);
   }
 
   if (id.length || analyticsId.length || adwordsId.length) {
