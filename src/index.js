@@ -10,6 +10,7 @@ import './shopify';
 import './gcm';
 import './klaviyo';
 import './reopen';
+import './microsoft';
 import gcm from './gcm';
 
 window.PandectesRules.gcm = gcm;
