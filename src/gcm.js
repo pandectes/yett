@@ -1,4 +1,4 @@
-import { actualPreferences, categoryAllowed } from './config';
+import { actualPreferences, categoryAllowed, storedPreferences } from './config';
 import { createScript } from './helpers';
 import { globalSettings } from './settings';
 import { EU_COUNTRY_CODES } from './counties';
@@ -108,46 +108,46 @@ if (isBannerActive && isGcmActive) {
 
   gcm.url_passthrough && gtag('set', 'url_passthrough', gcm.url_passthrough);
 
-  if (gcm.useNativeChannel) {
-    window[dataLayerProperty].push = function (...args) {
-      if (args && args[0]) {
-        const cmd = args[0][0];
-        const mod = args[0][1];
-        const typ = args[0][2];
-
-        const isNative =
-          typ &&
-          typeof typ === 'object' &&
-          Object.values(typ).length === 4 &&
-          typ.ad_storage &&
-          typ.analytics_storage &&
-          typ.ad_user_data &&
-          typ.ad_personalization;
-
-        if (cmd === 'consent' && isNative) {
-          if (mod === 'default') {
-            typ.functionality_storage = gcm.storage.functionality_storage;
-            typ.personalization_storage = gcm.storage.personalization_storage;
-            typ.security_storage = 'granted';
-            if (gcm.storage.wait_for_update) {
-              typ.wait_for_update = gcm.storage.wait_for_update;
-            }
-          } else if (mod === 'update') {
-            try {
-              const val = window.Shopify.customerPrivacy.preferencesProcessingAllowed() ? 'granted' : 'denied';
-              typ.functionality_storage = val;
-              typ.personalization_storage = val;
-            } catch (e) {
-              // do not do anything
-            }
-            typ.security_storage = 'granted';
-          }
-        }
-      }
-
-      return Array.prototype.push.apply(this, args);
-    };
-  }
+  // if (gcm.useNativeChannel) {
+  //   window[dataLayerProperty].push = function (...args) {
+  //     if (args && args[0]) {
+  //       const cmd = args[0][0];
+  //       // const mod = args[0][1];
+  //       const typ = args[0][2];
+  //
+  //       const isNative =
+  //         typ &&
+  //         typeof typ === 'object' &&
+  //         Object.values(typ).length === 4 &&
+  //         typ.ad_storage &&
+  //         typ.analytics_storage &&
+  //         typ.ad_user_data &&
+  //         typ.ad_personalization;
+  //
+  //       if (cmd === 'consent' && isNative) {
+  //         if (mod === 'default') {
+  //           typ.functionality_storage = gcm.storage.functionality_storage;
+  //           typ.personalization_storage = gcm.storage.personalization_storage;
+  //           typ.security_storage = 'granted';
+  //           if (gcm.storage.wait_for_update) {
+  //             typ.wait_for_update = gcm.storage.wait_for_update;
+  //           }
+  //         } else if (mod === 'update') {
+  //           try {
+  //             const val = window.Shopify.customerPrivacy.preferencesProcessingAllowed() ? 'granted' : 'denied';
+  //             typ.functionality_storage = val;
+  //             typ.personalization_storage = val;
+  //           } catch (e) {
+  //             // do not do anything
+  //           }
+  //           typ.security_storage = 'granted';
+  //         }
+  //       }
+  //     }
+  //
+  //     return Array.prototype.push.apply(this, args);
+  //   };
+  // }
 
   runConsent();
 }
@@ -195,7 +195,7 @@ function runConsent() {
     });
   }
 
-  if (defaultBlocked !== actualPreferences) {
+  if (storedPreferences !== null) {
     const adConfig = (actualPreferences & adStorageCategory) === 0 ? 'granted' : 'denied';
     const analyticsConfig = (actualPreferences & analyticsStorageCategory) === 0 ? 'granted' : 'denied';
     const functionalityConfig = (actualPreferences & functionalityStorageCategory) === 0 ? 'granted' : 'denied';
